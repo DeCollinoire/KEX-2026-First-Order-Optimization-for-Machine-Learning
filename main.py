@@ -1,8 +1,4 @@
-from optimizers import gradient_descent, sgd, momentum, nesterov, adam
-
-a.adam("Hej!")
-
-
+from optimizers import sgd, momentum, nesterov, adam
 
 
 
