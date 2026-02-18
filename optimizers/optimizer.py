@@ -5,6 +5,6 @@ class Optimizer:
         pass
     def step(self, LossObj):
         pass
-
-
+    def optimize(self):
+        pass
 
