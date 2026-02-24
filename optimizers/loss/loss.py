@@ -18,12 +18,21 @@ class LossObj:
         return np.array([])
 
 class QuadraticForm(LossObj):
-    def __init__(self, A, b):
-        self.A = A
-        self.b = b
+    def __init__(self, A = None, b = None):
+        if A is None or b is None:
+            self.random_qdf()
+        else:
+            self.A = A
+            self.b = b
+
+    def random_qdf(self, shape = (2,2)):
+        # Make A positive definite
+        self.A = np.abs(np.random.normal(0,1, shape))
+        self.A = self.A.T @ self.A + np.eye(shape[0])
+        self.b = np.random.normal(0,1, shape[0])
 
     def evaluate_loss(self, x):
-        return 0.5 * x.T @ self.A @ x - self.b.T @ x
+        return x.T @ self.A @ x - self.b @ x
 
     def evaluate_gradient(self, x, batch=None):
         return self.A @ x - self.b

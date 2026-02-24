@@ -38,12 +38,12 @@ def testQdf():
     Tests each optimizer function for finding the minimum of a quadratic form (qdf).
     """
     # Setup
-    A = np.array([
-        [19, 0],
-        [0, 5]
-        ])
-    b = np.array([1, 5])
-    qdf = QuadraticForm(A, b)
+    # A = np.array([
+    #     [19, 0],
+    #     [0, 5]
+    #     ])
+    # b = np.array([1, 5])
+    qdf = QuadraticForm()
 
     expectedRoot = np.linalg.solve(qdf.A, qdf.b)
     expected_Y = qdf.evaluate_loss(expectedRoot)
@@ -51,8 +51,8 @@ def testQdf():
     # List of optimizers
     initPos = [2, 5]
     sgd_optimizer = sgd.SGD(qdf, initPos, lr=0.1)
-    nesterov_optimizer = nesterov.Nesterov(qdf, initPos, lr = 0.1, decayFactor = 0.05)
-    momentum_optimizer = momentum.Momentum(qdf, initPos, learningRate = 0.1, decayFactor=0.7)
+    nesterov_optimizer = nesterov.Nesterov(qdf, initPos, lr = 0.1, decayFactor = 0.3)
+    momentum_optimizer = momentum.Momentum(qdf, initPos, learningRate = 0.1, decayFactor=0.3)
     optimizerFunctions = [sgd_optimizer, nesterov_optimizer, momentum_optimizer]
 
     # Testing

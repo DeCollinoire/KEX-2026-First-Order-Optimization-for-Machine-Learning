@@ -10,7 +10,10 @@ class Optimizer:
         self.lossHistory = []
         self.posHistory = []
 
-    def __call__(self, nr_epochs = 100):
+    def __call__(self, nr_epochs=100):
+        return self.optimize(nr_epochs)
+
+    def optimize(self, nr_epochs = 100):
         """ Full optimization. Takes `nr_epochs` number of optimizer steps and stores the history."""
         # Reset history
         self.lossHistory = []
@@ -21,7 +24,7 @@ class Optimizer:
             pos = self.step()
             self.posHistory.append(pos.copy())
             self.lossHistory.append(self.lossObj.evaluate_loss(pos))
-        return self.posHistory, self.lossHistory
+        return np.array(self.posHistory), np.array(self.lossHistory)
 
     def step(self):
         return np.array([])
