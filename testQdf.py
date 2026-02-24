@@ -44,18 +44,15 @@ def testQdf():
         ])
     b = np.array([1, 5])
     qdf = QuadraticForm(A, b)
+
     expectedRoot = np.linalg.solve(qdf.A, qdf.b)
     expected_Y = qdf.loss(expectedRoot)
     
-    initParams = [2, 5]
-    config = {
-        "lr": 0.1,
-        "gamma": 0.1
-    }
-    
+
     # List of optimizers
-    sgd_optimizer = SGD(initParams, **config)
-    nesterov_optimizer = Nesterov(initParams, **config)
+    initParams = [2, 5]
+    sgd_optimizer = SGD(initParams, lr=0.1)
+    nesterov_optimizer = Nesterov(initParams, lr = 0.1, gamma = 0.1)
     optimizerFunctions = [sgd_optimizer, nesterov_optimizer]
 
     # Testing
