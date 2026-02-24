@@ -24,7 +24,7 @@ class Momentum(opt.Optimizer):
         def step(self):
 
             #Formula for SGD Momentum
-            self.moment = self.prevMoment + self.learningRate * self.lossObj.evaluate_gradient(self.pos)
+            self.moment = self.decayFactor * self.prevMoment + self.learningRate * self.lossObj.evaluate_gradient(self.pos)
             self.pos = self.pos - self.moment
 
             #Update moment history
