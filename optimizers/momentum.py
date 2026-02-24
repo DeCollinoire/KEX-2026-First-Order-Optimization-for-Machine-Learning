@@ -20,12 +20,15 @@ class Momentum(opt.Optimizer):
             #Placeholder for position
             self.pos = np.array([])
 
-
+#Fix memory
         def step(self):
 
             #Formula for SGD Momentum
             self.moment = self.prevMoment + self.learningRate * self.lossObj.evaluate_gradient(self.pos)
             self.pos = self.pos - self.moment
+
+            #Update moment history
+            self.prevMoment = self.moment
 
             return self.pos
 
