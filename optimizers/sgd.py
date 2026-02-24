@@ -1,12 +1,14 @@
-from optimizer import Optimizer
+from optimizers.optimizer import Optimizer
+from optimizers.loss.loss import LossObj
 
 class SGD(Optimizer):
-    def __init__(self, initParams, lr):
-        super().__init__(initParams)
+    def __init__(self, lossObj: LossObj, initPos, lr):
+        super().__init__(lossObj, initPos)
+
+        # Hyperparameters
         self.lr = lr
-    def step(self, lossObj):
-        # Do one adjustment for each batch
-        for batch in lossObj.batches:   # FIX
-            grad = lossObj.gradient(self.params, batch) # Gradient uses whole batch for averaging
-            self.params -= self.lr * grad
-        return self.params
+
+    def step(self):
+        grad = self.lossObj.evaluate_gradient(self.pos)
+        self.pos -= self.lr * grad
+        return self.pos

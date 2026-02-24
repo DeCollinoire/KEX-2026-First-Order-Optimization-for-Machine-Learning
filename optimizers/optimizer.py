@@ -1,34 +1,27 @@
-
 import numpy as np
-
-def get_batches(data, batch_size=50):
-    return [data[start:start + batch_size] for start in range(0, len(data), batch_size)]
+from optimizers.loss.loss import LossObj
 
 class Optimizer:
-    def __init__(self, initPos = np.array([])):
-        """
-        Sets up:
-            Storage of parameters and loss
-            Storage of hyperparameters
-            Storage of data
-        """
-        # Store parameters and loss
-        self.pos = np.array(initPos, dtype=float) # Current parameters
-        self.lossHistory = []
-        self.paramsHistory = []
+    def __init__(self, lossObj: LossObj, initPos = np.array([])):
+        # Store parameters/position and loss
+        self.lossObj = lossObj
+        self.pos = np.array(initPos, dtype=float)
 
-    def __call__(self, lossFunc, nr_epochs):
+        self.lossHistory = []
+        self.posHistory = []
+
+    def __call__(self, nr_epochs = 100):
         """ Full optimization. Takes `nr_epochs` number of optimizer steps and stores the history."""
         # Reset history
         self.lossHistory = []
-        self.paramsHistory = []
+        self.posHistory = []
         
         # Step nr_epochs times
         for _ in range(nr_epochs):
-            params = self.step(lossFunc)
-            self.paramsHistory.append(params)
-            self.lossHistory.append(lossFunc.loss(params))
-        return self.paramsHistory, self.lossHistory
+            pos = self.step()
+            self.posHistory.append(pos.copy())
+            self.lossHistory.append(self.lossObj.evaluate_loss(pos))
+        return self.posHistory, self.lossHistory
 
-    def step(self, LossObj):
-        pass
+    def step(self):
+        return np.array([])

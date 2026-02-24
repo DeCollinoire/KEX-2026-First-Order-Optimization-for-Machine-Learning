@@ -1,16 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from optimizers.optimizer import SGD, Nesterov
-from optimizers.loss import QuadraticForm
+from optimizers import sgd, nesterov, momentum
+from optimizers.loss.loss import QuadraticForm
 
-def plot_optimization(qdf, history, optimizer_name):
+def plot_path(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
     # Create a grid of points
-    x = np.linspace(-10, 10, 100)
-    y = np.linspace(-10, 10, 100)
+    x = np.linspace(center[0] - scale * 10, center[0] + scale * 10, 100)
+    y = np.linspace(center[1] - scale * 10, center[1] + scale * 10, 100)
     X, Y = np.meshgrid(x, y)
     
     # Calculate the loss (Z) at every point on the grid
-    Z = np.array([qdf.loss(np.array([px, py])) for px, py in zip(np.ravel(X), np.ravel(Y))])
+    Z = np.array([qdf.evaluate_loss(np.array([px, py])) for px, py in zip(np.ravel(X), np.ravel(Y))])
     Z = Z.reshape(X.shape)
     
     # Plot the contours
@@ -18,6 +18,7 @@ def plot_optimization(qdf, history, optimizer_name):
     plt.clabel(contour, inline=True, fontsize=8)
     
     # Plot the path taken
+    history = np.asarray(history)
     hx = history[:, 0]
     hy = history[:, 1]
     plt.plot(hx, hy, "r.-", label=f"{optimizer_name} Path", alpha=0.6)
@@ -37,7 +38,6 @@ def testQdf():
     Tests each optimizer function for finding the minimum of a quadratic form (qdf).
     """
     # Setup
-    tol = 0.01      # Tolerance for when loss is "small enough"
     A = np.array([
         [19, 0],
         [0, 5]
@@ -46,22 +46,23 @@ def testQdf():
     qdf = QuadraticForm(A, b)
 
     expectedRoot = np.linalg.solve(qdf.A, qdf.b)
-    expected_Y = qdf.loss(expectedRoot)
-    
+    expected_Y = qdf.evaluate_loss(expectedRoot)
 
     # List of optimizers
-    initParams = [2, 5]
-    sgd_optimizer = SGD(initParams, lr=0.1)
-    nesterov_optimizer = Nesterov(initParams, lr = 0.1, gamma = 0.1)
-    optimizerFunctions = [sgd_optimizer, nesterov_optimizer]
+    initPos = [2, 5]
+    sgd_optimizer = sgd.SGD(qdf, initPos, lr=0.1)
+    nesterov_optimizer = nesterov.Nesterov(qdf, initPos, lr = 0.1, decayFactor = 0.05)
+    momentum_optimizer = momentum.Momentum(qdf, initPos, learningRate = 0.1, decayFactor=0.7)
+    optimizerFunctions = [sgd_optimizer, nesterov_optimizer, momentum_optimizer]
 
     # Testing
     for i, optimizer in enumerate(optimizerFunctions):
-        lossHistory, paramsHistory = optimizer(qdf)    # data not needed for quadratic forms
+        # Optimize (optimizer returns position history first, then loss history)
+        posHistory, lossHistory = optimizer(nr_epochs = 100)
 
         # Results
         print("### Testing", optimizer.__class__.__name__)
-        print("Found minimum: ", optimizer.params)
+        print("Found minimum: ", optimizer.pos)
         print("Expected: ",expectedRoot)
 
         # Plotting
@@ -72,8 +73,8 @@ def testQdf():
 
         ## Paths
         plt.figure(2)
-        plt.subplot(2, 2, i%2+1)
-        plot_optimization(qdf, paramsHistory, optimizer.__class__.__name__)
+        plt.subplot(2, 2, i+1)
+        plot_path(qdf, posHistory, optimizer.__class__.__name__, center = expectedRoot, scale = 0.5)
 
     plt.show()
 

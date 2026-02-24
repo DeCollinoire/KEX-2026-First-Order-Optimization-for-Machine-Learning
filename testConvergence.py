@@ -1,6 +1,6 @@
 import numpy as np
-from optimizers.optimizer import SGD
-from optimizers.loss import QuadraticForm
+from optimizers import sgd, momentum, nesterov, adam
+from optimizers.loss.loss import QuadraticForm
 
 def testConvergence(optimizer, lossFunc, tol, nr_epochs):
     """
@@ -11,9 +11,9 @@ def testConvergence(optimizer, lossFunc, tol, nr_epochs):
         3. The number of steps to reach a certain tolerance.
     """
     # Run optimization
-    paramsHistory = []
+    posHistory = []
     lossHistory = []
-        
+    
     # Convergence ratio = loss[i] / loss[i-1]
     conv_ratios = lossHistory / np.roll(lossHistory, -1)
     
@@ -23,9 +23,10 @@ def testConvergence(optimizer, lossFunc, tol, nr_epochs):
     return conv_ratios, N_steps
 
 def main():
-    for optimizerClass in [SGD]:
-        optimizer = optimizerClass([0, 0], lr = 0.1, gamma = 0.1, batch_size = 100, )
-        testConvergence(optimizer, QuadraticForm, 1e-2, nr_epochs=100)
+    optSGD = sgd.SGD([0, 0], lr = 0.1)
+    optNesterov = nesterov.Nesterov([0,0], lr = 0.1)
+    for optimizer in [optSGD, optNesterov]:
+        testConvergence(optimizer, QuadraticForm, tol = 1e-2, nr_epochs = 100)
 
 if __name__=="__main__":
     main()
