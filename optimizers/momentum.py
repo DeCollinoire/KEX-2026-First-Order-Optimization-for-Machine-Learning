@@ -3,8 +3,8 @@ import loss.loss as lo
 import numpy as np
 
 class Momentum(opt.Optimizer):
-        def __init__(self, lossObject: lo.Loss, decayFactor, learningRate):
-            super().__init__()
+        def __init__(self, lossObject: lo.LossObj, initPos, decayFactor, learningRate):
+            super().__init__(lossObject, initPos)
 
             self.lossObj = lossObject
             self.decayFactor = decayFactor
