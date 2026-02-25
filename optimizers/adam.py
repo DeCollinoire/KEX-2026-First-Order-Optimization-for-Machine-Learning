@@ -18,15 +18,13 @@ class Adam(opt.Optimizer):
         self.forgettingfactorRMS = forgettingFactorR
         self.learningRate = learningRate
 
-        # Previous moment/velocity term
-        self.prevMoment = np.array([])
-        # Current one
+
+        # Moment/velocity term
         self.moment = np.array([])
         #For the bias corrected term
         self.biasCorrectedMoment = np.array([])
 
-        #For the second moment in adam, for the rms parts history
-        self.prevRMSMoment = np.array([])
+        #For the second moment in adam, for the rms part
         self.RMSMoment = np.array([])
         #For the bias corrected term
         self.biasCorrectedRMSM = np.array([])
@@ -43,9 +41,9 @@ class Adam(opt.Optimizer):
 
 
             #Moment term
-            self.moment = self.decayFactor * self.prevMoment + (1 - self.decayFactor) * self.lossObj.evaluate_gradient(self.pos)
+            self.moment = self.decayFactor * self.moment + (1 - self.decayFactor) * self.lossObj.evaluate_gradient(self.pos)
             #RMS term
-            self.RMSMoment = self.forgettingfactorRMS * self.prevRMSMoment + (1 - self.forgettingfactorRMS) * ((self.lossObj.evaluate_gradient(self.pos))**2)
+            self.RMSMoment = self.forgettingfactorRMS * self.RMSMoment + (1 - self.forgettingfactorRMS) * ((self.lossObj.evaluate_gradient(self.pos))**2)
 
             #Moment bias correction
             self.biasCorrectedMoment = self.moment / (1 - (self.decayFactor ** iteration))
@@ -56,9 +54,5 @@ class Adam(opt.Optimizer):
             #Taking the step
             self.pos = self.pos - self.learningRate * (self.biasCorrectedMoment) / (np.sqrt(self.biasCorrectedRMSM) + self.epsilon)
 
-
-            #Update attribute history
-            self.prevMoment = self.moment
-            self.prevRMSMoment = self.RMSMoment
 
             return self.pos
