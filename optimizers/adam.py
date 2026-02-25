@@ -3,7 +3,7 @@ import loss.loss as lo
 import numpy as np
 
 class Adam(opt.Optimizer):
-    def __init__(self, lossObject: lo.LossObj, learningRate, forgettingFactorM = 0.9, forgettingFactorR = 0.999):
+    def __init__(self, lossObject: lo.LossObj, learningRate, initPos, forgettingFactorM = 0.9, forgettingFactorR = 0.999):
         """
         The forgettingFactorM is for the momentum part in adam while the other forgetting factor is for the RMSprop part
         :param lossObject:
@@ -11,7 +11,7 @@ class Adam(opt.Optimizer):
         :param forgettingFactorR:
         :param learningRate:
         """
-        super().__init__()
+        super().__init__(lossObject, initPos)
 
         self.lossObj = lossObject
         self.decayFactor = forgettingFactorM
