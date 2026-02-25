@@ -10,9 +10,7 @@ class Momentum(opt.Optimizer):
             self.decayFactor = decayFactor
             self.learningRate = learningRate
 
-            #Previous moment/velocity term
-            self.prevMoment = np.array([])
-            #Current one
+            #Moment/velocity term
             self.moment = np.array([])
 
             #Placeholder
@@ -24,11 +22,9 @@ class Momentum(opt.Optimizer):
         def step(self):
 
             #Formula for SGD Momentum
-            self.moment = self.decayFactor * self.prevMoment + self.learningRate * self.lossObj.evaluate_gradient(self.pos)
+            self.moment = self.decayFactor * self.moment + self.learningRate * self.lossObj.evaluate_gradient(self.pos)
             self.pos = self.pos - self.moment
 
-            #Update moment history
-            self.prevMoment = self.moment
 
             return self.pos
 
