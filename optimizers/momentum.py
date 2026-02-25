@@ -13,10 +13,8 @@ class Momentum(opt.Optimizer):
             #Moment/velocity term
             self.moment = np.array([])
 
-            #Placeholder
-            self.gradLoss = np.array([])
             #Placeholder for position
-            self.pos = np.array([])
+            self.pos = initPos
 
 #Fix memory
         def step(self):

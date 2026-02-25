@@ -29,10 +29,8 @@ class Adam(opt.Optimizer):
         #For the bias corrected term
         self.biasCorrectedRMSM = np.array([])
 
-        # Placeholder
-        self.gradLoss = np.array([])
         # Placeholder for position
-        self.pos = np.array([])
+        self.pos = initPos
 
         #For avoiding zero division in adam
         self.epsilon = 10 ** -2
