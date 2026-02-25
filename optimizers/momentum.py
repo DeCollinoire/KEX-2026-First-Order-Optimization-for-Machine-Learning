@@ -1,5 +1,5 @@
-import optimizer as opt
-import loss.loss as lo
+import optimizers.optimizer as opt
+import optimizers.loss.loss as lo
 import numpy as np
 
 class Momentum(opt.Optimizer):
