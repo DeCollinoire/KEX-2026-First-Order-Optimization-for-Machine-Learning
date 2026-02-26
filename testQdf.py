@@ -5,8 +5,8 @@ from optimizers.loss.loss import QuadraticForm
 
 def plot_path(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
     # Create a grid of points
-    x = np.linspace(center[0] - scale * 10, center[0] + scale * 10, 100)
-    y = np.linspace(center[1] - scale * 10, center[1] + scale * 10, 100)
+    x = np.linspace(-10, 10, 100)
+    y = np.linspace(-10, 10, 100)
     X, Y = np.meshgrid(x, y)
     
     # Calculate the loss (Z) at every point on the grid
@@ -49,10 +49,10 @@ def testQdf():
     expected_Y = qdf.evaluate_loss(expectedRoot)
 
     # List of optimizers
-    initPos = [5, 5]
+    initPos = [1, 1.5]
     learningRateDefault = 0.1
     sgd_optimizer = sgd.SGD(qdf, initPos, lr=learningRateDefault)
-    nesterov_optimizer = nesterov.Nesterov(qdf, initPos, lr = 0.1, decayFactor = 0.3)
+    nesterov_optimizer = nesterov.Nesterov(qdf, initPos, lr = 0.1, decayFactor = 0.9)
     momentum_optimizer = momentum.Momentum(qdf, initPos, learningRate = 0.1, decayFactor=0.3)
     adam_optimizer = adam.Adam(qdf, initPos=initPos, learningRate=1, forgettingFactorM=0.3, forgettingFactorR=0.999)
     optimizerFunctions = [sgd_optimizer, nesterov_optimizer, momentum_optimizer, adam_optimizer]
@@ -60,7 +60,7 @@ def testQdf():
     # Testing
     for i, optimizer in enumerate(optimizerFunctions):
         # Optimize (optimizer returns position history first, then loss history)
-        posHistory, lossHistory = optimizer(nr_epochs = 25)
+        posHistory, lossHistory = optimizer(nr_epochs = 10)
 
         # Results
         print("### Testing", optimizer.__class__.__name__)

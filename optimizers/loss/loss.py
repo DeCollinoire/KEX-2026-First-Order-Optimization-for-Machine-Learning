@@ -33,7 +33,7 @@ class QuadraticForm(LossObj):
 
     def evaluate_loss(self, x):
         x = np.array(x)
-        return x.T @ self.A @ x - self.b @ x
+        return 0.5 * x.T @ self.A @ x - self.b @ x  # 0.5 factor unexpectedly made the plot look better, but it doesn't change the optimization problem.
 
     def evaluate_gradient(self, x, batch=None):
         x = np.array(x)
