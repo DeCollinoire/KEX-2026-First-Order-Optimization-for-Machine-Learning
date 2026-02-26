@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from optimizers import sgd, nesterov, momentum
+from optimizers import sgd, nesterov, momentum, adam
 from optimizers.loss.loss import QuadraticForm
 
 def plot_path(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
@@ -38,27 +38,29 @@ def testQdf():
     Tests each optimizer function for finding the minimum of a quadratic form (qdf).
     """
     # Setup
-    # A = np.array([
-    #     [19, 0],
-    #     [0, 5]
-    #     ])
-    # b = np.array([1, 5])
-    qdf = QuadraticForm()
+    A = np.array([
+         [10, 0],
+         [0, 5]
+         ])
+    b = np.array([1, 5])
+    qdf = QuadraticForm(A, b)
 
     expectedRoot = np.linalg.solve(qdf.A, qdf.b)
     expected_Y = qdf.evaluate_loss(expectedRoot)
 
     # List of optimizers
     initPos = [2, 5]
-    sgd_optimizer = sgd.SGD(qdf, initPos, lr=0.1)
+    learningRateDefault = 0.1
+    sgd_optimizer = sgd.SGD(qdf, initPos, lr=learningRateDefault)
     nesterov_optimizer = nesterov.Nesterov(qdf, initPos, lr = 0.1, decayFactor = 0.3)
     momentum_optimizer = momentum.Momentum(qdf, initPos, learningRate = 0.1, decayFactor=0.3)
-    optimizerFunctions = [sgd_optimizer, nesterov_optimizer, momentum_optimizer]
+    adam_optimizer = adam.Adam(qdf, initPos=initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    optimizerFunctions = [sgd_optimizer, nesterov_optimizer, momentum_optimizer, adam_optimizer]
 
     # Testing
     for i, optimizer in enumerate(optimizerFunctions):
         # Optimize (optimizer returns position history first, then loss history)
-        posHistory, lossHistory = optimizer(nr_epochs = 100)
+        posHistory, lossHistory = optimizer(nr_epochs = 20)
 
         # Results
         print("### Testing", optimizer.__class__.__name__)

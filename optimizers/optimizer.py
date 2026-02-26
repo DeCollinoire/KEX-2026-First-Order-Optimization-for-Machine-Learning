@@ -16,8 +16,8 @@ class Optimizer:
     def optimize(self, nr_epochs = 100):
         """ Full optimization. Takes `nr_epochs` number of optimizer steps and stores the history."""
         # Reset history
-        self.lossHistory = []
-        self.posHistory = []
+        self.posHistory = [self.pos.copy()]
+        self.lossHistory = [self.lossObj.evaluate_loss(self.pos)]
         
         # Step nr_epochs times
         for _ in range(nr_epochs):

@@ -32,9 +32,11 @@ class QuadraticForm(LossObj):
         self.b = np.random.normal(0,1, shape[0])
 
     def evaluate_loss(self, x):
+        x = np.array(x)
         return x.T @ self.A @ x - self.b @ x
 
     def evaluate_gradient(self, x, batch=None):
+        x = np.array(x)
         return self.A @ x - self.b
     
 

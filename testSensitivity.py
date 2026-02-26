@@ -9,8 +9,8 @@ def test_hyperparameter_sensitivity(optimizer: Optimizer, hyperparams: dict):
     for h_name, baseval in hyperparams.items():
         for factor in adj_factors:
             # Adjust the basevalue in the optimizer
-            setattr(optimizer, h_name, baseval * adj_factors)
-
+            setattr(optimizer, h_name, baseval * factor)
+            
             # Run the optimization and get the results
             posHistory, lossHistory = optimizer(nr_epochs=100)
         N_steps = int(np.argmin(np.greater(lossHistory, 0.1)))
