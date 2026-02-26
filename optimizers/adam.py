@@ -35,7 +35,9 @@ class Adam(opt.Optimizer):
         #For avoiding zero division in adam
         self.epsilon = 10 ** -2
 
-    def step(self, iteration):
+        self.iteration = 0
+
+    def step(self):
 
 
             #Moment term
@@ -44,13 +46,14 @@ class Adam(opt.Optimizer):
             self.RMSMoment = self.forgettingfactorRMS * self.RMSMoment + (1 - self.forgettingfactorRMS) * ((self.lossObj.evaluate_gradient(self.pos))**2)
 
             #Moment bias correction
-            self.biasCorrectedMoment = self.moment / (1 - (self.decayFactor ** iteration))
+            self.biasCorrectedMoment = self.moment / (1 - (self.decayFactor ** self.iteration))
 
             #RMS bias correction
-            self.biasCorrectedRMSM = self.RMSMoment / (1 - (self.forgettingfactorRMS ** iteration))
+            self.biasCorrectedRMSM = self.RMSMoment / (1 - (self.forgettingfactorRMS ** self.iteration))
 
             #Taking the step
             self.pos = self.pos - self.learningRate * (self.biasCorrectedMoment) / (np.sqrt(self.biasCorrectedRMSM) + self.epsilon)
 
+            self.iteration = self.iteration + 1
 
             return self.pos
