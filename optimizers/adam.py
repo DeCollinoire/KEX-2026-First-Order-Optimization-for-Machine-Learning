@@ -30,7 +30,7 @@ class Adam(opt.Optimizer):
         self.biasCorrectedRMSM = np.zeros_like(initPos)
 
         # Placeholder for position
-        self.pos = initPos
+        #self.pos = initPos
 
         #For avoiding zero division in adam
         self.epsilon = 10 ** -2
