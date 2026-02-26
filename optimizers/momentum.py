@@ -11,7 +11,7 @@ class Momentum(opt.Optimizer):
             self.learningRate = learningRate
 
             #Moment/velocity term
-            self.moment = np.array([])
+            self.moment = np.zeros_like(initPos)
 
             #Placeholder for position
             #self.pos = initPos
