@@ -1,6 +1,6 @@
 import numpy as np
 from optimizers import sgd, momentum, nesterov, adam
-from optimizers.loss.loss import QuadraticForm
+from QuadraticForm import QuadraticForm
 
 def testConvergence(optimizer, tol, nr_epochs):
     posHistory, lossHistory = optimizer(nr_epochs)
