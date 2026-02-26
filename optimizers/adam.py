@@ -35,7 +35,7 @@ class Adam(opt.Optimizer):
         #For avoiding zero division in adam
         self.epsilon = 10 ** -2
 
-        self.iteration = 0
+        self.iteration = 1
 
     def step(self):
 
