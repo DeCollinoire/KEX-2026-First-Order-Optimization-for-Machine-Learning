@@ -14,7 +14,7 @@ class Momentum(opt.Optimizer):
             self.moment = np.array([])
 
             #Placeholder for position
-            self.pos = initPos
+            #self.pos = initPos
 
 #Fix memory
         def step(self):
