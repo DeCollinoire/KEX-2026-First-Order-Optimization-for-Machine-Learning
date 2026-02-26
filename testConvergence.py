@@ -6,7 +6,7 @@ def testConvergence(optimizer, tol, nr_epochs):
     posHistory, lossHistory = optimizer(nr_epochs)
     
     # Convergence ratios: L(t+1) / L(t)
-    conv_ratios = lossHistory[1:] / (lossHistory[:-1] + 1e-15) # Avoid div by zero
+    conv_ratios = lossHistory[1:] / (lossHistory[:-1] + 1e-15) # Avoid div by zero.
     
     # Find first index where loss < tol
     under_tol = np.where(lossHistory < tol)[0]
