@@ -20,14 +20,14 @@ class Adam(opt.Optimizer):
 
 
         # Moment/velocity term
-        self.moment = np.array([])
+        self.moment = np.zeros_like(initPos)
         #For the bias corrected term
-        self.biasCorrectedMoment = np.array([])
+        self.biasCorrectedMoment = np.zeros_like(initPos)
 
         #For the second moment in adam, for the rms part
-        self.RMSMoment = np.array([])
+        self.RMSMoment = np.zeros_like(initPos)
         #For the bias corrected term
-        self.biasCorrectedRMSM = np.array([])
+        self.biasCorrectedRMSM = np.zeros_like(initPos)
 
         # Placeholder for position
         self.pos = initPos
