@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from optimizers import sgd, nesterov, momentum, adam
-from optimizers.loss.loss import QuadraticForm
+from QuadraticForm import QuadraticForm
 
 def plot_path(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
     # Create a grid of points
-    x = np.linspace(-10, 10, 100)
-    y = np.linspace(-10, 10, 100)
+    x = np.linspace(-10 * scale, 10 * scale, 100)
+    y = np.linspace(-10 * scale, 10 * scale, 100)
     X, Y = np.meshgrid(x, y)
     
     # Calculate the loss (Z) at every point on the grid
@@ -49,7 +49,7 @@ def testQdf():
     expected_Y = qdf.evaluate_loss(expectedRoot)
 
     # List of optimizers
-    initPos = [1, 1.5]
+    initPos = [3, 5]
     learningRateDefault = 0.1
     sgd_optimizer = sgd.SGD(qdf, initPos, lr=learningRateDefault)
     nesterov_optimizer = nesterov.Nesterov(qdf, initPos, lr = 0.1, decayFactor = 0.9)
