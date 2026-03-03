@@ -7,10 +7,13 @@ def get_batches(data, batch_size=50):
 
 class LossObj:
     def __init__(self, data = None, batchAmount = 1):
-        self.data = data
+        self.data = np.array(data) if data is not None else np.array([])
         self.batchAmount = batchAmount
 
         self.randomBatchList = []
+
+    def minima(self):
+        return None # calculate if possible
 
     def evaluate_loss(self, position):
         """
@@ -24,7 +27,7 @@ class LossObj:
         return np.array([])
 
     def fillRandomBatchList(self):
-        pass
-        #self.data = random.shuffle(self.data)
-
-        #self.
+        # shuffle data and split into batches
+        np.random.shuffle(self.data)
+        self.randomBatchList = get_batches(self.data, batch_size=len(self.data) // self.batchAmount)
+        
