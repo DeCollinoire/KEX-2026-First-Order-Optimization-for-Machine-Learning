@@ -6,7 +6,8 @@ class LogisticRegression(LossObj):
         self.data = data
 
     def evaluate_loss(self, x):
-        pass
+        return np.mean(np.log(1 + np.exp(-self.data[:, 1] * (self.data[:, 0] @ x))))
 
     def evaluate_gradient(self, x, batch=None):
-        pass
+        return -(self.data[:, 0].T @ (self.data[:, 1] / (1 + np.exp(self.data[:, 1] * (self.data[:, 0] @ x))))) / len(self.data)
+    

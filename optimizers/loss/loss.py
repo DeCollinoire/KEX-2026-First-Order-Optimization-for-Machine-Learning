@@ -14,7 +14,7 @@ class LossObj:
 
         #Get the length of the indata. The other data should be of similar length.
         self.xDataLength = 1
-        if self.data != None:
+        if len(self.data) > 0:
             self.xDataLength = len(self.data[0])
 
             #Get the amount of data vectors (X,Y,...)
