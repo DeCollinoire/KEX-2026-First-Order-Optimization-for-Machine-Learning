@@ -22,8 +22,7 @@ class LossObj:
 
         self.numberOfBatches = math.ceil(self.xDataLength / self.batchAmount)
 
-        self.shuffledData = data
-
+        self.shuffledData = self.data.copy()
 
         #Allocate memory, the none lists will be replaced by numpy data vectors.
         #[
@@ -35,7 +34,6 @@ class LossObj:
         self.randomIndexList = []
         self.currentBatch = 0
 
-
     def minima(self):
         return None # calculate if possible
 
@@ -44,6 +42,7 @@ class LossObj:
         Position is the a numpy array where the loss should be evaluated
         """
         return np.array([])
+    
     def evaluate_gradient(self, position):
         """
         Position is the a numpy array where the gradient should be evaluated
