@@ -25,7 +25,7 @@ class LossObj:
         self.shuffledData = data
 
 
-        #Allocate memory, the none lists will be replaced by numpy data vectors.
+        #Allocate memory, the none lists will be replaced by numpy data vectors. Each batch starts with weights/posistion, output/labels, neural input/features.
         #[
         #    [[None], [None], [None]...],  # batch 0
         #    [[None], [None], [None]...]  # batch 1
