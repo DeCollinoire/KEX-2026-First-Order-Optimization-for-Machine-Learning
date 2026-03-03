@@ -11,7 +11,6 @@ class Rosenbrock(LossObj):
 
     def evaluate_loss(self, x):
         #x = pos
-
         return ((self.a - x[0]) ** 2) + self.b * ((x[1] - (x[1] - (x[0] ** 2))) ** 2)
 
     def evaluate_gradient(self, x, batch=None):
