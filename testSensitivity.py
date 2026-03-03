@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from optimizers.optimizer import Optimizer
 from optimizers.sgd import SGD
-from optimizers.loss.loss import QuadraticForm
+from QuadraticForm import QuadraticForm
 
 def test_hyperparameter_sensitivity(optimizer: Optimizer, hyperparams: dict):
     adj_factors = [0.5, 0.75, 1, 1.25, 1.5]

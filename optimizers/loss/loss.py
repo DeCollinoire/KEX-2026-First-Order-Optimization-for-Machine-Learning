@@ -8,7 +8,7 @@ def get_batches(data, batch_size=50):
 
 class LossObj:
     def __init__(self, data = None, batchAmount = 1):
-        self.data = data
+        self.data = np.array(data) if data is not None else np.array([])
         self.batchAmount = batchAmount
         self.amountOfDataVectors = 1
 
@@ -35,6 +35,9 @@ class LossObj:
         self.randomIndexList = []
         self.currentBatch = 0
 
+
+    def minima(self):
+        return None # calculate if possible
 
     def evaluate_loss(self, position):
         """
