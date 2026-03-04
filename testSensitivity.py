@@ -6,6 +6,7 @@ from QuadraticForm import QuadraticForm
 
 def test_hyperparameter_sensitivity(optimizer: Optimizer, hyperparams: dict):
     adj_factors = [0.5, 0.75, 1, 1.25, 1.5]
+    results = []
     for h_name, baseval in hyperparams.items():
         for factor in adj_factors:
             # Adjust the basevalue in the optimizer
@@ -27,9 +28,9 @@ if __name__ == "__main__":
     
     # Test learning rate
     h = {
-        "lr": 0.1
+        "lr": 0.1,
     }
-    optimizer = SGD(lossObj, initPos, h['lr'])
+    optimizer = SGD(lossObj, initPos, **h) # lr = 0.1
 
     results = test_hyperparameter_sensitivity(optimizer, h)
     print(results)

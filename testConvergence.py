@@ -54,11 +54,11 @@ def estimateOrder(errors):
 
 def main():
     # Setup
-    dim = 2
+    dim = 5
     lossObj = Rosenbrock(dim)
     minima = lossObj.minima()
     Plot3d = False
-    nrEpochs = 500
+    nrEpochs = 1000
 
     np.random.seed(42)  # Remove to get different random initial positions each run
     initPos = np.random.randint(-10, 10, size = dim)
@@ -105,8 +105,6 @@ def main():
 
     plt.show()
 
-
-
 def main_alt():
     # NOTE: DOES NOT WORK YET
     # Config
@@ -120,16 +118,17 @@ def main_alt():
     optNesterov = nesterov.Nesterov(lossObj, initPos, lr = 0.1, decayFactor=0.9)
     optMomentum = momentum.Momentum(lossObj, initPos, learningRate = 0.1, decayFactor=0.9)
     optAdam = adam.Adam(lossObj, initPos, learningRate = 0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
-    
+
     # Start testing
-    errors = []
+    errors = [[], [], [], []]
     for epoch in range(1, nr_epochs+1):
-        for optimizer in [optSGD, optNesterov, optMomentum, optAdam]:
+        # NOTE: Shuffle batches here
+        for index, optimizer in enumerate([optSGD, optNesterov, optMomentum, optAdam]):
             optimizer.step()
             
             # Check convergence
-            error = np.linalg.norm(optimizer.pos - minima)
-            errors.append(error)
+            error = np.linalg.norm(optimizer.pos - minima) # check if minima exist first
+            errors[index].append(error)
             
             if error < 1e-4:
                 print(f"{optimizer.__class__.__name__} converged in {epoch} steps.")
@@ -141,7 +140,6 @@ def main_alt():
                 #print(f"Convergence ratios: {conv_ratios}")
                 print(f"Number of steps to reach tolerance: {N_steps}")
                 #print(f"Estimated convergence order: {q}")
- 
 
 if __name__=="__main__":
     main()
