@@ -7,8 +7,8 @@ def get_batches(data, batch_size=50):
     return [data[start:start + batch_size] for start in range(0, len(data), batch_size)]
 
 class LossObj:
-    def __init__(self, data = None, batchAmount = 1):
-        self.data = np.array(data) if data is not None else np.array([])
+    def __init__(self, data = [], batchAmount = 1):
+        self.data = data        # np.array(data) if data is not None else np.array([])
         self.batchAmount = batchAmount
         self.amountOfDataVectors = 1
 
@@ -22,7 +22,7 @@ class LossObj:
 
         self.numberOfBatches = math.ceil(self.xDataLength / self.batchAmount)
 
-        self.shuffledData = self.data.copy()
+        self.shuffledData = data # self.data.copy()
 
         #Allocate memory, the none lists will be replaced by numpy data vectors. Each batch starts with weights/posistion, output/labels, neural input/features.
         #[
