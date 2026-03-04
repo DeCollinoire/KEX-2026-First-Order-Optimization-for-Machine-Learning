@@ -1,24 +1,24 @@
 import numpy as np
+
+# Project files
 from optimizers import sgd, momentum, nesterov, adam
 from QuadraticForm import QuadraticForm
-from testQdf import plot_path
+from Rosenbrock import Rosenbrock
+from LogisticRegression import LogisticRegression
+
+# Plotting
+from utils import plotPath, plotHistoryGraph, plotPath_3d
 import matplotlib.pyplot as plt
 
 def testConvergence(optimizer, tol, nr_epochs):
     posHistory, lossHistory = optimizer(nr_epochs)
-    posHistory = np.array(posHistory)
-    
-    fig = plt.figure(figsize=(8,6))
-    fig.add_subplot(1,1,1)
-    plot_path(optimizer.lossObj, posHistory, optimizer.__class__.__name__)
-    plt.show()
-    
+
     # Estimate errors as distance between two successive positions or from the minima (extrema) if known
     minima = optimizer.lossObj.minima()
     if minima is not None:
         errors = np.linalg.norm(posHistory - minima, axis=1)
     else:
-        errors = np.linalg.norm(np.diff(posHistory, axis=0), axis=1)
+        errors = np.linalg.norm(np.diff(posHistory, axis=0), axis=1) # Estimate error as change in position (not ideal, but can indicate convergence behavior)
     
     # Convergence ratios
     conv_ratios = errors[1:] / (errors[:-1] + 1e-15)
@@ -28,11 +28,11 @@ def testConvergence(optimizer, tol, nr_epochs):
     n_steps = under_tol[0] + 1 if under_tol.size > 0 else nr_epochs
 
     # Estimate convergence order q
-    q = estimate_order(errors[:n_steps]) if n_steps > 3 else None
+    q = estimateOrder(errors[:n_steps]) if n_steps > 3 else None
 
     return conv_ratios, n_steps, q
 
-def estimate_order(errors):
+def estimateOrder(errors):
     # Filter out zeros or negative values to avoid NaN in log
     errors = errors[errors > 1e-15]
     if len(errors) < 3: return None
@@ -53,22 +53,56 @@ def estimate_order(errors):
     return np.mean(valid_q[-10:]) if valid_q.size > 0 else None
 
 def main():
-    lossObj = QuadraticForm()
-    initPos = [2,5]
+    # Setup
+    dim = 2
+    lossObj = Rosenbrock(dim)
+    minima = lossObj.minima()
 
-    optSGD = sgd.SGD(lossObj, initPos, lr = 0.1)
-    optNesterov = nesterov.Nesterov(lossObj, initPos, lr = 0.1, decayFactor=0.3)
-    optMomentum = momentum.Momentum(lossObj, initPos, learningRate = 0.1, decayFactor=0.3)
-    optAdam = adam.Adam(lossObj, initPos, learningRate = 0.1, forgettingFactorM=0.999, forgettingFactorR=0.999)
-    for optimizer in [optSGD, optNesterov, optMomentum, optAdam]:
-        conv_ratios, N_steps, q = testConvergence(optimizer, tol = 1e-4, nr_epochs = 100)
+    np.random.seed(42)  # Remove to get different random initial positions each run
+    initPos = np.random.randint(-10, 10, size = dim)
+    if initPos[0] == 1 and initPos[1] == 1:
+        initPos[0] += 1 # Avoid starting at the minima
+
+    # Setup of optimizers
+    optSGD = sgd.SGD(lossObj, initPos, lr = 0.005)
+    optNesterov = nesterov.Nesterov(lossObj, initPos, lr = 0.001, decayFactor=0.9)
+    optMomentum = momentum.Momentum(lossObj, initPos, learningRate = 0.001, decayFactor=0.9)
+    optAdam = adam.Adam(lossObj, initPos, learningRate = 0.1, forgettingFactorM=0.9, forgettingFactorR=0.9)
+
+    # Test each optimizer and present
+    for index, optimizer in enumerate([optSGD, optNesterov, optMomentum, optAdam]):
+        conv_ratios, N_steps, q = testConvergence(optimizer, tol = 1e-4, nr_epochs = 500)
 
         # Present
-        print(f"Optimizer: {optimizer.__class__.__name__}")
-        print(f"Final position: {optimizer.pos}")
-        print(f"Convergence ratios: {conv_ratios}")
+        print(f"\n---- Optimizer: {optimizer.__class__.__name__} ----")
+        print(f"Final position: {optimizer.pos}, True Minima: {minima}, Error: {np.linalg.norm(optimizer.pos - minima)}")
         print(f"Number of steps to reach tolerance: {N_steps}")
         print(f"Estimated convergence order: {q}")
+        print(f"Convergence ratios of last 10 iterations: {conv_ratios[-10:]}")
+        
+        # Plotting
+        plt.figure(1)
+        plt.subplot(2,2,index+1)
+        plotPath(optimizer.lossObj, optimizer.posHistory, optimizer.__class__.__name__, scale=3)
+        plt.plot(minima[0], minima[1], "r*", markersize=10, label="True Minima") if minima is not None else None
+        plt.legend()
+
+        plt.figure(2)
+        plt.subplot(2,2,index+1)
+        plotHistoryGraph(conv_ratios, f"Convergence Ratios for {optimizer.__class__.__name__}", "Convergence Ratio", yscale="linear")
+
+        plt.figure(3)
+        plt.subplot(2,2,index+1)
+        plotHistoryGraph(optimizer.lossHistory, f"Loss History for {optimizer.__class__.__name__}", "Loss", yscale="linear")
+
+        # 3D plot
+        plotPath_3d(lossObj, optimizer.posHistory, f'Surface for {optimizer.__class__.__name__}', center=minima, scale=3)
+        plt.plot(minima[0], minima[1], 0, "r*", markersize=10, label="True Minima") if minima is not None else None
+        plt.legend()
+
+    plt.show()
+
+
 
 def main_alt():
     # NOTE: DOES NOT WORK YET
@@ -100,10 +134,10 @@ def main_alt():
 
                 # Present
                 print(f"Optimizer: {optimizer.__class__.__name__}")
-                print(f"Final position: {optimizer.pos}")
-                print(f"Convergence ratios: {conv_ratios}")
+                print(f"Final position: {optimizer.pos}, Minima: {minima}")
+                #print(f"Convergence ratios: {conv_ratios}")
                 print(f"Number of steps to reach tolerance: {N_steps}")
-                print(f"Estimated convergence order: {q}")
+                #print(f"Estimated convergence order: {q}")
  
 
 if __name__=="__main__":

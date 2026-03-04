@@ -38,22 +38,20 @@ class Adam(opt.Optimizer):
         self.iteration = 1
 
     def step(self):
+        #Moment term
+        self.moment = self.decayFactor * self.moment + (1 - self.decayFactor) * self.lossObj.evaluate_gradient(self.pos)
+        #RMS term
+        self.RMSMoment = self.forgettingfactorRMS * self.RMSMoment + (1 - self.forgettingfactorRMS) * ((self.lossObj.evaluate_gradient(self.pos))**2)
 
+        #Moment bias correction
+        self.biasCorrectedMoment = self.moment / (1 - (self.decayFactor ** self.iteration))
 
-            #Moment term
-            self.moment = self.decayFactor * self.moment + (1 - self.decayFactor) * self.lossObj.evaluate_gradient(self.pos)
-            #RMS term
-            self.RMSMoment = self.forgettingfactorRMS * self.RMSMoment + (1 - self.forgettingfactorRMS) * ((self.lossObj.evaluate_gradient(self.pos))**2)
+        #RMS bias correction
+        self.biasCorrectedRMSM = self.RMSMoment / (1 - (self.forgettingfactorRMS ** self.iteration))
 
-            #Moment bias correction
-            self.biasCorrectedMoment = self.moment / (1 - (self.decayFactor ** self.iteration))
+        #Taking the step
+        self.pos = self.pos - self.learningRate * (self.biasCorrectedMoment) / (np.sqrt(self.biasCorrectedRMSM) + self.epsilon)
 
-            #RMS bias correction
-            self.biasCorrectedRMSM = self.RMSMoment / (1 - (self.forgettingfactorRMS ** self.iteration))
+        self.iteration = self.iteration + 1
 
-            #Taking the step
-            self.pos = self.pos - self.learningRate * (self.biasCorrectedMoment) / (np.sqrt(self.biasCorrectedRMSM) + self.epsilon)
-
-            self.iteration = self.iteration + 1
-
-            return self.pos
+        return self.pos

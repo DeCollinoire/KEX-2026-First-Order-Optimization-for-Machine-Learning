@@ -5,13 +5,9 @@ class LogisticRegression(LossObj):
     def __init__(self, data):
         self.data = data
 
-    #We remember that the incomming data (self.data)is on the form [x/input vectors, y/labels]. self.data[0] has undergone numpy conversion.
-    def evaluate_loss(self, weights):
+    def evaluate_loss(self, x):
+        return np.mean(np.log(1 + np.exp(-self.data[:, 1] * (self.data[:, 0] @ x))))
 
-        #Might be more stable if another log programming function is used.
-        return (1/self.xDataLength) * np.sum(np.log(1 - np.exp(-self.data[1] * (self.data[0] @ weights))))
-
-    def evaluate_gradient(self, weights, batch=None):
-
-
-        pass
+    def evaluate_gradient(self, x, batch=None):
+        return -(self.data[:, 0].T @ (self.data[:, 1] / (1 + np.exp(self.data[:, 1] * (self.data[:, 0] @ x))))) / len(self.data)
+    

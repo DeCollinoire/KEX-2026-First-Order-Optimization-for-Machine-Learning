@@ -14,7 +14,7 @@ class LossObj:
 
         #Get the length of the indata. The other data should be of similar length.
         self.xDataLength = 1
-        if self.data != None:
+        if len(self.data) > 0:
             self.xDataLength = len(self.data[0])
 
             #Get the amount of data vectors (X,Y,...)
@@ -22,8 +22,7 @@ class LossObj:
 
         self.numberOfBatches = math.ceil(self.xDataLength / self.batchAmount)
 
-        self.shuffledData = data
-
+        self.shuffledData = self.data.copy()
 
         #Allocate memory, the none lists will be replaced by numpy data vectors. Each batch starts with weights/posistion, output/labels, neural input/features.
         #[
@@ -35,7 +34,6 @@ class LossObj:
         self.randomIndexList = []
         self.currentBatch = 0
 
-
     def minima(self):
         return None # calculate if possible
 
@@ -44,6 +42,7 @@ class LossObj:
         Position is the a numpy array where the loss should be evaluated
         """
         return np.array([])
+    
     def evaluate_gradient(self, position):
         """
         Position is the a numpy array where the gradient should be evaluated
