@@ -57,6 +57,8 @@ def main():
     dim = 2
     lossObj = Rosenbrock(dim)
     minima = lossObj.minima()
+    Plot3d = False
+    nrEpochs = 500
 
     np.random.seed(42)  # Remove to get different random initial positions each run
     initPos = np.random.randint(-10, 10, size = dim)
@@ -71,7 +73,7 @@ def main():
 
     # Test each optimizer and present
     for index, optimizer in enumerate([optSGD, optNesterov, optMomentum, optAdam]):
-        conv_ratios, N_steps, q = testConvergence(optimizer, tol = 1e-4, nr_epochs = 500)
+        conv_ratios, N_steps, q = testConvergence(optimizer, tol = 1e-4, nr_epochs = nrEpochs)
 
         # Present
         print(f"\n---- Optimizer: {optimizer.__class__.__name__} ----")
@@ -96,9 +98,10 @@ def main():
         plotHistoryGraph(optimizer.lossHistory, f"Loss History for {optimizer.__class__.__name__}", "Loss", yscale="linear")
 
         # 3D plot
-        plotPath_3d(lossObj, optimizer.posHistory, f'Surface for {optimizer.__class__.__name__}', center=minima, scale=3)
-        plt.plot(minima[0], minima[1], 0, "r*", markersize=10, label="True Minima") if minima is not None else None
-        plt.legend()
+        if Plot3d:
+            plotPath_3d(lossObj, optimizer.posHistory, f'Surface for {optimizer.__class__.__name__}', center=minima, scale=3)
+            plt.plot(minima[0], minima[1], 0, "r*", markersize=10, label="True Minima") if minima is not None else None
+            plt.legend()
 
     plt.show()
 
