@@ -3,13 +3,14 @@ import random
 import numpy as np
 import math
 
+
 def get_batches(data, batch_size=50):
     return [data[start:start + batch_size] for start in range(0, len(data), batch_size)]
 
 class LossObj:
-    def __init__(self, data = [], batchAmount = 1):
+    def __init__(self, data = [], batchSize = 1):
         self.data = data        # np.array(data) if data is not None else np.array([])
-        self.batchAmount = batchAmount
+        self.batchSize = batchSize
         self.amountOfDataVectors = 1
 
         #Get the length of the indata. The other data should be of similar length.
@@ -20,7 +21,7 @@ class LossObj:
             #Get the amount of data vectors (X,Y,...)
             self.amountOfDataVectors = len(self.data)
 
-        self.numberOfBatches = math.ceil(self.xDataLength / self.batchAmount)
+        self.numberOfBatches = math.ceil(self.xDataLength / self.batchSize)
 
         self.shuffledData = data # self.data.copy()
 
@@ -52,6 +53,8 @@ class LossObj:
     def fillRandomBatchList(self):
 
         self.randomIndexList = np.random.permutation(self.xDataLength)
+        #self.randomIndexList =
+
 
         #Shuffles the data in each data vector but keeps related values in appropriate places
         for i in range(self.amountOfDataVectors):
@@ -59,8 +62,19 @@ class LossObj:
 
 
         #Fills the randomBatchList with batches from the shuffled data
-        for i in range(0, self.xDataLength, self.batchAmount):
+        #i will increase by batchsize each iteration and idx will increase by 1 each time in the same iteration.
+        idx = 0
+        for i in range(0, self.xDataLength, self.batchSize):
             for j in range(self.amountOfDataVectors):
-                self.randomBatchList[i][j] = self.shuffledData[j][i: i + self.batchAmount]
+                self.randomBatchList[idx][j] = self.shuffledData[j][i: i + self.batchSize]
+            idx = idx + 1
 
         return
+
+
+
+
+#Test
+#testLoss = LossObj(data=[np.array([[4,5,6], [7,8,9], [10,11,12]]), np.array([1,2,3])], batchSize= 2)
+#testLoss.fillRandomBatchList()
+#print(testLoss.randomBatchList)
