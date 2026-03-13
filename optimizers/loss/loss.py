@@ -75,6 +75,7 @@ class LossObj:
 
 
 #Test
+# np.array(x1, x2, x3...]), np.array([y1,y2,y3])
 #testLoss = LossObj(data=[np.array([[4,5,6], [7,8,9], [10,11,12]]), np.array([1,2,3])], batchSize= 2)
 #testLoss.fillRandomBatchList()
 #print(testLoss.randomBatchList)
