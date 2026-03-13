@@ -26,7 +26,6 @@ class Momentum(opt.Optimizer):
 
             return self.pos
 
-
-
-
+        def getHyperParamStr(self):
+            return f"lr: {self.learningRate}, decayfactor: {self.decayFactor}"
 
