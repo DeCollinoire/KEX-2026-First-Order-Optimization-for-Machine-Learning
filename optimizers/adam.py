@@ -56,5 +56,5 @@ class Adam(opt.Optimizer):
 
         return self.pos
 
-    def getHyperParamStr(self):
+    def getHyperparamStr(self):
         return f"lr: {self.learningRate}, beta1: {self.decayFactor}, beta2: {self.forgettingfactorRMS}"
