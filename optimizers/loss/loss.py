@@ -69,6 +69,7 @@ class LossObj:
                 self.randomBatchList[idx][j] = self.shuffledData[j][i: i + self.batchSize]
             idx = idx + 1
 
+        self.currentBatch = 0
         return
 
 

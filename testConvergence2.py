@@ -137,12 +137,13 @@ def convergenceHandlerBatchVersion(initPos, optimizerList = [], lossObj = None):
         # NOTE: Shuffle batches here
         lossObj.fillRandomBatchList()
 
+
         for batch in range(lossObj.numberOfBatches): #len(lossObj.randomBatchList) = lossObj.numberOfBatches
             for index, optimizer in enumerate(optimizerList):
 
                 if convergeList[index] == False:
 
-                    optimizer.step
+                    optimizer.step()
 
                     # Check convergence
                     error = np.linalg.norm(optimizer.pos - minima)  # check if minima exist first
