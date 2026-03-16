@@ -118,8 +118,9 @@ def mainAlt():
     initPos = np.array([1.0, 1.0])
     
     # Test learning rate
+    optGroup = optimizerGroup()
     optSGD = sgd.SGD(lossObj, initPos, lr=0.5)
-    optimizerListSGD = createVariants(optSGD, "lr", [0.1, 0.2, 0.5])
+    optimizerListSGD = optGroup.createVariants(optSGD, "lr", [0.1, 0.2, 0.5])
 
     optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.5, decayFactor=0.9)
     """
