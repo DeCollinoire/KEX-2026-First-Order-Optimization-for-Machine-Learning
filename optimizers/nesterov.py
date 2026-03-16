@@ -13,6 +13,13 @@ class Nesterov(Optimizer):
         # Velocity vector
         self.velocity = np.zeros_like(initPos)
 
+    def getHyperparamStr(self):
+        return f"lr: {self.lr}, decayFactor: {self.decayFactor}"
+
+
+    def getHyperparamDict(self):
+        return {"lr": self.lr, "decayFactor": self.decayFactor}
+
     def step(self):
         look_ahead_pos = self.pos - self.decayFactor * self.velocity
         self.velocity = self.decayFactor * self.velocity + self.lr * self.lossObj.evaluate_gradient(look_ahead_pos)    # estimate the gradient at the next position

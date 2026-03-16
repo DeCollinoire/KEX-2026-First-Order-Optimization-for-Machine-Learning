@@ -12,11 +12,11 @@ class Adam(opt.Optimizer):
         :param learningRate:
         """
         super().__init__(lossObject, initPos)
-
         self.lossObj = lossObject
+
+        self.learningRate = learningRate
         self.decayFactor = forgettingFactorM
         self.forgettingfactorRMS = forgettingFactorR
-        self.learningRate = learningRate
 
 
         # Moment/velocity term
@@ -58,3 +58,6 @@ class Adam(opt.Optimizer):
 
     def getHyperparamStr(self):
         return f"lr: {self.learningRate}, beta1: {self.decayFactor}, beta2: {self.forgettingfactorRMS}"
+    
+    def getHyperparamDict(self):
+        return {"learningRate": self.learningRate, "decayFactor": self.decayFactor, "forgettingfactorRMS": self.forgettingfactorRMS}
