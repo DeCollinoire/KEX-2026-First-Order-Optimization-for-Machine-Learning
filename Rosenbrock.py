@@ -13,7 +13,7 @@ class Rosenbrock(LossObj):
         # See: https://docs.scipy.org/doc/scipy-0.14.0/reference/tutorial/optimize.html#unconstrained-minimization-of-multivariate-scalar-functions-minimize
         return np.sum(100.0 * (position[1:] - position[:-1]**2.0)**2.0 + (1 - position[:-1])**2.0)
 
-    def evaluate_gradient(self, position, batch=None):
+    def evaluate_gradient(self, position):
         # See: https://docs.scipy.org/doc/scipy-0.14.0/reference/tutorial/optimize.html#unconstrained-minimization-of-multivariate-scalar-functions-minimize
         xm = position[1:-1]
         xm_m1 = position[:-2]
