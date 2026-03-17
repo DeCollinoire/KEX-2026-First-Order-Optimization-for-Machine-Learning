@@ -3,45 +3,32 @@ import matplotlib.pyplot as plt
 from optimizers.optimizer import Optimizer
 from optimizers import sgd, nesterov, momentum, adam
 from QuadraticForm import QuadraticForm
-from utils import plotHistoryGraph
-
-
+from utils import plotHistoryGraph, train
+from copy import deepcopy
 
 class optimizerGroup:
-    def __init___(self, optimizer: Optimizer):
-        self.optimizerBaseCase = optimizer
-        self.optVariants = self.createVariants(optimizer, [0.1, 0.2])
+    def __init__(self, optimizerBaseCase: Optimizer):
+        self.optimizerBaseCase = optimizerBaseCase
+        self.optVariants = optimizerBaseCase.getHyperparamDict()
 
-    def createVariants(self, optimizerBaseCase, hyperparamName hyperparamValues):
+    def setVariantsManual(self, hyperparamName, hyperparamValues):
         """
-        "lr": [opt_h1, opt_h2, opt_h3] # hyperparam 1
+        Creates a dictionary of variants in one hyperparamter according to this mapping:
+            hyperparamName: [opt_h1, opt_h2, opt_h3]
+        where opt_h1 is the basecase optimizer with the chosen hyperparameter set to hyperparamValues[1] etc.
         """
-        hyperparamValues = self.optimizerBaseCase.getHyperparamDict()
+        # Setup all
         optimizerList = []
         for value in hyperparamValues:
-            opt = optimizerBaseCase.copy()
-            setattr(opt, hyperparamName, value) ## NOTE: hyperparamName is a parameter for this function, needs to be changed
+            opt = deepcopy(self.optimizerBaseCase)
+            setattr(opt, hyperparamName, value)
             optimizerList.append(opt)
-        return optimizerList
+        self.optVariants[hyperparamName] = optimizerList
 
-
-def train(optimizerList, nrEpochs=100):
-    lossObj = optimizerList[0].lossObj
-
-    # Start testing
-    for epoch in range(1, nrEpochs + 1):
-        # Shuffle batches
-        lossObj.fillRandomBatchList()
-
-        for batch in range(lossObj.numberOfBatches): # len(lossObj.randomBatchList) = lossObj.numberOfBatches
-            for index, optimizer in enumerate(optimizerList):
-                optimizer.step()
-                optimizer.posHistory.append(optimizer.pos.copy())
-                optimizer.lossHistory.append(lossObj.evaluate_loss(optimizer.pos))
-
-            # On to next batch for calculating gradient and so on
-            lossObj.currentBatchIndex = lossObj.currentBatchIndex + 1
-    return
+    def trainAllVariants(self):
+        # For each hyperparameter, train each adjusted optimizer
+        for hyperparamName, optimizerList in self.optVariants.items():
+            train(optimizerList, nrEpochs=100)
 
 def calculateMeanDifference(base, lossHistories):
     """
@@ -49,38 +36,44 @@ def calculateMeanDifference(base, lossHistories):
     """
     pass
 
-def test_hyperparameter_sensitivity(optimizer: Optimizer, nrEpochs=100):
+def testHyperparameterSensitivity(optimizerBaseCase: Optimizer, nrEpochs=100):
     """"
     Results will be a dictionary on the following format:
-    results = {
-        "h1": [loss1, loss2] # hyperparam1
-        "h1": [loss1, loss2] # hyperparam2
+    optVariants = {
+        "h1": [opt11, opt12] # hyperparam1
+        "h1": [opt21, opt22] # hyperparam2
     }
+    where opt11 is the basecase with hyperparameter "h1" adjusted
     """
-
-    hyperparamsDict = optimizer.getHyperparamDict()
-    results = hyperparamsDict.copy()    # Values will be overwritten in the loop below
+    # Get all hyperparameters to be varied.
+    hyperparamsDict = optimizerBaseCase.getHyperparamDict()
+    optVariants = hyperparamsDict.copy() # Values will be overwritten with optimizer objects in the loop below
 
     # Test each hyperparameter
     adjustmentFactor = [0.001, 0.01, 0.1, 1]
     for hyperparamName, baseval in hyperparamsDict.items():
-        # Test different values of the hyperparameter
-        results[hyperparamName] = []
+        # Vary the value of the hyperparameter
+        optVariants[hyperparamName] = []
         for factor in adjustmentFactor:
             # Adjust the basevalue in the optimizer
-            optTemp = optimizer
-            setattr(optimizer, hyperparamName, baseval * factor)
-            
-            # Run the optimization and get the results
-            posHistory, lossHistory = optimizer(nr_epochs=nrEpochs)
-            results[hyperparamName].append(lossHistory)
+            optAdjusted = deepcopy(optimizerBaseCase)
+            setattr(optAdjusted, hyperparamName, baseval * factor)
 
-        # Reset hyperparameter to base value
-        setattr(optimizer, hyperparamName, baseval)
+            # Save the resulting optimizer
+            optVariants[hyperparamName].append(optAdjusted)
 
-    return results, adjustmentFactor
+    # Run optimization/training, with all variations of each hyperparameter "in parallel", e.g. "lr" = 0.1, 0.2, 0.3 with the same random batches
+    for hyperparamName, optimizerList in optVariants.items():
+        # NOTE: There might be an issue where each optimizer have a deepcopy of their respective lossObj, meaning they don't use the same batching
+        train(optimizerList, nrEpochs)  
+
+    return optVariants
 
 def main():
+    """ 
+    Test by passing each optimizer to testHyperparameterSensitivity.
+    NOTE: Issues with mapping the total optimizer hyperparameter settings to each result, as of now.
+    """
     A = np.array([
         [19, 0],
         [0, 5]
@@ -97,15 +90,18 @@ def main():
 
     optimizerList = [optSGD, optNesterov, optMomentum, optAdam]
     for opt in optimizerList:
-        results, adjustmentFactors = test_hyperparameter_sensitivity(opt, nrEpochs=5) # Results is a dictionary that maps each hyperparamater name to a list of loss histories, one for each hyperparameter value.
+        optVariants = testHyperparameterSensitivity(opt, nrEpochs=5) # the test will generate variants of the optimizer and train them
 
         print(f" \n Optimizer: {opt.__class__.__name__}")
-        for hyperparamName, lossHistories in results.items(): 
-            print(f"\t {hyperparamName}: {lossHistories}")
+        for hyperparamName, optimizerList in optVariants.items():
+            print(f"\t Variation in {hyperparamName}")
             plt.figure()
-            for i in range(len(lossHistories)):
-                #plt.subplot(2,2, i+1)
-                plotHistoryGraph(lossHistories[i], f"{opt.__class__.__name__} Loss History \n {hyperparamName} = {adjustmentFactors[i]}", "Loss")
+            for opt in optimizerList:
+                lossHistory = opt.lossHistory
+                print(f"\t Loss history for {opt.getHyperparamDict()}: {hyperparamName}")
+
+                # Plot all loss history in one graph, alt. use: plt.subplot(2,2, i+1), add index i
+                plotHistoryGraph(lossHistory, f"{opt.__class__.__name__} Loss History \n {opt.getHyperparamDict}", ylabel="Loss")
             plt.show()
 
 def mainAlt():
@@ -116,33 +112,30 @@ def mainAlt():
     b = np.array([1, 5])
     lossObj = QuadraticForm(A, b)
     initPos = np.array([1.0, 1.0])
-    
-    # Test learning rate
-    optGroup = optimizerGroup()
-    optSGD = sgd.SGD(lossObj, initPos, lr=0.5)
-    optimizerListSGD = optGroup.createVariants(optSGD, "lr", [0.1, 0.2, 0.5])
 
-    optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.5, decayFactor=0.9)
-    """
+    # SGD
+    optSGD = sgd.SGD(lossObj, initPos, lr=0.1)
+    optGroupSGD = optimizerGroup(optimizerBaseCase = optSGD)
 
-    """
-    optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.5, decayFactor=0.9)
-    optAdam = adam.Adam(lossObj, initPos, learningRate=0.5, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    # Momentum
+    optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.3, decayFactor=0.9)
+    optGroupMomentum = optimizerGroup(optimizerBaseCase = optSGD)
 
-    optimizerList = [optSGD, optNesterov, optMomentum, optAdam]
-    for opt in optimizerList:
-        results = test_hyperparameter_sensitivity(opt, nrEpochs=5) # Results is a dictionary that maps each hyperparamater name to a list of loss histories, one for each hyperparameter value.
+    # Nesterov
+    optAdam = nesterov.Nesterov(lossObj, initPos, lr=0.1, decayFactor=0.9)
+    optGroupNesterov = optimizerGroup(optimizerBaseCase = optSGD)
 
-        print(f" \n Optimizer: {opt.__class__.__name__}")
-        for name, lossHistory in results.items():
-            print(f"\t {name}: {lossHistory}")
-            plt.figure()
-            #plt.subplot(2,2, i+1)
-            plotHistoryGraph(lossHistory, f"{opt.__class__.__name__} Loss History \n {opt.getHyperparamStr()}", "LOss")                
-            plt.show()
+    # Adam
+    optAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    optGroupAdam = optimizerGroup(optimizerBaseCase = optSGD)
 
+    optimizerGroupList = [optGroupSGD, optGroupMomentum, optGroupNesterov, optGroupAdam]
+    for optGroup in optimizerGroupList:
+        # Train all variants. For example, all variations of "lr" = 0.01, 0.1, 1 will be trained with the same random batches. 
+        optGroup.trainAllVariants()
 
-
+        # Present
+        # TODO
 
 if __name__ == "__main__": 
     main()

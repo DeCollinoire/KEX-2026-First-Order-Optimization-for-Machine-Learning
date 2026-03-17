@@ -11,7 +11,7 @@ from utils import plotPath, plotHistoryGraph, plotPath_3d
 import matplotlib.pyplot as plt
 
 
-def testConvergence(optimizer, tol, nr_epochs):
+def testConvergenceSingleOptimizer(optimizer, tol, nr_epochs):
     posHistory, lossHistory = optimizer(nr_epochs)
 
     # Estimate errors as distance between two successive positions or from the minima (extrema) if known
@@ -34,7 +34,6 @@ def testConvergence(optimizer, tol, nr_epochs):
 
     return conv_ratios, n_steps, q
 
-
 def estimateOrder(errors):
     # Filter out zeros or negative values to avoid NaN in log
     errors = errors[errors > 1e-15]
@@ -55,151 +54,65 @@ def estimateOrder(errors):
     valid_q = q_estimates[np.isfinite(q_estimates)]
     return np.mean(valid_q[-10:]) if valid_q.size > 0 else None
 
-
-def main():
+def testConvergenceBatched(optimizerList, lossObj, nr_epochs = 100):
     # Setup
-    dim = 5
-    lossObj = Rosenbrock(dim)
     minima = lossObj.minima()
-    Plot3d = False
-    nrEpochs = 1000
-
-    np.random.seed(42)  # Remove to get different random initial positions each run
-    initPos = np.random.randint(-10, 10, size=dim)
-    if initPos[0] == 1 and initPos[1] == 1:
-        initPos[0] += 1  # Avoid starting at the minima
-
-    # Setup of optimizers
-    optSGD = sgd.SGD(lossObj, initPos, lr=0.005)
-    optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.001, decayFactor=0.9)
-    optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.001, decayFactor=0.9)
-    optAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.9)
-
-    # Test each optimizer and present
-    for index, optimizer in enumerate([optSGD, optNesterov, optMomentum, optAdam]):
-        conv_ratios, N_steps, q = testConvergence(optimizer, tol=1e-4, nr_epochs=nrEpochs)
-
-        # Present
-        print(f"\n---- Optimizer: {optimizer.__class__.__name__} ----")
-        print(
-            f"Final position: {optimizer.pos}, True Minima: {minima}, Error: {np.linalg.norm(optimizer.pos - minima)}")
-        print(f"Number of steps to reach tolerance: {N_steps}")
-        print(f"Estimated convergence order: {q}")
-        print(f"Convergence ratios of last 10 iterations: {conv_ratios[-10:]}")
-
-        # Plotting
-        plt.figure(1)
-        plt.subplot(2, 2, index + 1)
-        plotPath(optimizer.lossObj, optimizer.posHistory, optimizer.__class__.__name__, scale=3)
-        plt.plot(minima[0], minima[1], "r*", markersize=10, label="True Minima") if minima is not None else None
-        plt.legend()
-
-        plt.figure(2)
-        plt.subplot(2, 2, index + 1)
-        plotHistoryGraph(conv_ratios, f"Convergence Ratios for {optimizer.__class__.__name__}", "Convergence Ratio",
-                         yscale="linear")
-
-        plt.figure(3)
-        plt.subplot(2, 2, index + 1)
-        plotHistoryGraph(optimizer.lossHistory, f"Loss History for {optimizer.__class__.__name__}", "Loss",
-                         yscale="linear")
-
-        # 3D plot
-        if Plot3d:
-            plotPath_3d(lossObj, optimizer.posHistory, f'Surface for {optimizer.__class__.__name__}', center=minima,
-                        scale=3)
-            plt.plot(minima[0], minima[1], 0, "r*", markersize=10, label="True Minima") if minima is not None else None
-            plt.legend()
-
-    plt.show()
-
-
-def convergenceHandlerBatchVersion(initPos, optimizerList = [], lossObj = None):
-    # NOTE: DOES NOT WORK YET. Maybe works now?
-    # Config
-    nr_epochs = 100
-    #lossObj = QuadraticForm()
-    minima = lossObj.minima()
-    #initPos = [2, 5]
-
-    # Setup of optimizers
-    # optSGD = sgd.SGD(lossObj, initPos, lr=0.01)
-    # optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.1, decayFactor=0.9)
-    # optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.1, decayFactor=0.9)
-    # optAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    errors = [[] for _ in range(len(optimizerList))]
+    hasConvergedCheckList = [False for _ in range(len(optimizerList))]
 
     # Start testing
-    #errors = [[], [], [], []]
-    errors = [[] for _ in range(len(optimizerList))]
-    convergeList = [False for _ in range(len(optimizerList))]
-
     for epoch in range(1, nr_epochs + 1):
-        # NOTE: Shuffle batches here
+        # Shuffle batches
         lossObj.fillRandomBatchList()
-
-
-        for batch in range(lossObj.numberOfBatches): #len(lossObj.randomBatchList) = lossObj.numberOfBatches
+        
+        # Step each optimizer in parallel, using the same batch.
+        for batch in range(lossObj.numberOfBatches): # here, lossObj.numberOfBatches = len(lossObj.randomBatchList)
             for index, optimizer in enumerate(optimizerList):
-
-                if convergeList[index] == False:
-
+                if hasConvergedCheckList[index] == False:
                     optimizer.step()
 
-                    # Check convergence
-                    error = np.linalg.norm(optimizer.pos - minima)  # check if minima exist first
+                    # Calculate error and save it
+                    error = np.linalg.norm(optimizer.pos - minima)
                     errors[index].append(error)
 
+                    # Check convergence
                     if error < 1e-4:
-                        #print(f"{optimizer.__class__.__name__} converged in {epoch} steps.") #Batches instead of epoch? One batch is used for each step
-
                         N_steps = epoch * (lossObj.numberOfBatches - 1) + batch
                         print(f"{optimizer.__class__.__name__} converged in {N_steps} steps and {epoch} epochs.")
-                        #N_steps = epoch
 
                         # Present
                         print(f"Optimizer: {optimizer.__class__.__name__}")
                         print(f"Final position: {optimizer.pos}, Minima: {minima}")
-                        # print(f"Convergence ratios: {conv_ratios}")
                         print(f"Number of steps to reach tolerance: {N_steps}")
+                        # print(f"Convergence ratios: {conv_ratios}")
                         # print(f"Estimated convergence order: {q}")
 
-                        convergeList[index] = True
+                        hasConvergedCheckList[index] = True
 
-
-            #On to next batch for calculating gradient and so on
+            # Step to the next batch
             lossObj.currentBatch = lossObj.currentBatch + 1
 
-        # for index, optimizer in enumerate([optSGD, optNesterov, optMomentum, optAdam]):
-        #     optimizer.step()
-        #
-        #     # Check convergence
-        #     error = np.linalg.norm(optimizer.pos - minima)  # check if minima exist first
-        #     errors[index].append(error)
-        #
-        #     if error < 1e-4:
-        #         print(f"{optimizer.__class__.__name__} converged in {epoch} steps.")
-        #         N_steps = epoch
-        #
-        #         # Present
-        #         print(f"Optimizer: {optimizer.__class__.__name__}")
-        #         print(f"Final position: {optimizer.pos}, Minima: {minima}")
-        #         # print(f"Convergence ratios: {conv_ratios}")
-        #         print(f"Number of steps to reach tolerance: {N_steps}")
-        #         # print(f"Estimated convergence order: {q}")
 
+def main():
+    # Setup problem
+    data = [np.array([
+            [2, 3],      # [feature 1, feature 2], sample 1
+            [0, 2]
+            ]),
+            np.array([1,-1]) # [label example 1, label example 2]
+            ]
+    lossObj = LogisticRegression(data=data)
 
-def mainAlt():
-
-    #Need to correct details such as initPos, data and lossObj LogisticRegression complaint even though one is a version of the other
-    lossObj = LogisticRegression
-    initPos = None
-
+    # Setup optimizers
+    initPos = np.array( 
+        [0.5, 0.5]
+    )
     optSGD = sgd.SGD(lossObj, initPos, lr=0.01)
     optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.1, decayFactor=0.9)
     optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.1, decayFactor=0.9)
     optAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
 
-    convergenceHandlerBatchVersion(initPos, optimizerList=[optSGD, optNesterov, optMomentum, optAdam])
+    testConvergenceBatched(optimizerList=[optSGD, optNesterov, optMomentum, optAdam], lossObj=lossObj)
 
 if __name__ == "__main__":
     main()

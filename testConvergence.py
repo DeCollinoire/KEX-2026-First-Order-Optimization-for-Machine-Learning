@@ -105,42 +105,6 @@ def main():
 
     plt.show()
 
-def main_alt():
-    # NOTE: DOES NOT WORK YET
-    # Config
-    nr_epochs = 100
-    lossObj = QuadraticForm()
-    minima = lossObj.minima()
-    initPos = [2,5]
-
-    # Setup of optimizers
-    optSGD = sgd.SGD(lossObj, initPos, lr = 0.01)
-    optNesterov = nesterov.Nesterov(lossObj, initPos, lr = 0.1, decayFactor=0.9)
-    optMomentum = momentum.Momentum(lossObj, initPos, learningRate = 0.1, decayFactor=0.9)
-    optAdam = adam.Adam(lossObj, initPos, learningRate = 0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
-
-    # Start testing
-    errors = [[], [], [], []]
-    for epoch in range(1, nr_epochs+1):
-        # NOTE: Shuffle batches here
-        for index, optimizer in enumerate([optSGD, optNesterov, optMomentum, optAdam]):
-            optimizer.step()
-            
-            # Check convergence
-            error = np.linalg.norm(optimizer.pos - minima) # check if minima exist first
-            errors[index].append(error)
-            
-            if error < 1e-4:
-                print(f"{optimizer.__class__.__name__} converged in {epoch} steps.")
-                N_steps = epoch
-
-                # Present
-                print(f"Optimizer: {optimizer.__class__.__name__}")
-                print(f"Final position: {optimizer.pos}, Minima: {minima}")
-                #print(f"Convergence ratios: {conv_ratios}")
-                print(f"Number of steps to reach tolerance: {N_steps}")
-                #print(f"Estimated convergence order: {q}")
-
 if __name__=="__main__":
     main()
 

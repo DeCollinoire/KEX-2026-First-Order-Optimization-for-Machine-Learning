@@ -22,7 +22,7 @@ class Optimizer:
         # Step through the entire dataset nr_epochs times
         for _ in range(nr_epochs):
             # Step once for every batch
-            # self.lossObj.fillRandomBatchList() 
+            self.lossObj.fillRandomBatchList() 
             for batchIndex in range(self.lossObj.numberOfBatches):
                 self.step()
                 

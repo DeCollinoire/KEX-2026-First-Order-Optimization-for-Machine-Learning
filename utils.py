@@ -68,10 +68,31 @@ def plotPath_3d(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
     
     plt.legend()
 
-def plotHistoryGraph(history, title, ylable, yscale="log"):
-    plt.plot(history, marker="o")
+def plotHistoryGraph(history, title, label, ylabel, yscale="linear"):
+    plt.plot(history, marker="o", label=label)
     plt.title(title)
     plt.xlabel("Iteration")
-    plt.ylabel(ylable)
+    plt.ylabel(ylabel)
     plt.yscale(yscale)
+    plt.legend()
     plt.grid()
+
+def train(optimizerList, lossObj=None, nrEpochs=100):
+    if lossObj is None:
+        lossObj = optimizerList[0].lossObj
+    # Start testing
+    for epoch in range(1, nrEpochs + 1):
+        # Shuffle batches
+        lossObj.fillRandomBatchList()
+
+        for batch in range(lossObj.numberOfBatches):
+            for index, optimizer in enumerate(optimizerList):
+                # Store history first (to include the inital position)
+                optimizer.posHistory.append(optimizer.pos.copy())
+                optimizer.lossHistory.append(lossObj.evaluate_loss(optimizer.pos))
+
+                optimizer.step()
+
+            # On to next batch for calculating gradient and so on
+            lossObj.currentBatchIndex = lossObj.currentBatchIndex + 1
+    return optimizerList

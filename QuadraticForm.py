@@ -3,6 +3,7 @@ from optimizers.loss.loss import LossObj
 
 class QuadraticForm(LossObj):
     def __init__(self, A = None, b = None):
+        super().__init__()
         if A is None or b is None:
             self.random_qdf()
         else:

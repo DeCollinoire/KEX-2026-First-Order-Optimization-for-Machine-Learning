@@ -15,41 +15,39 @@ class Adam(opt.Optimizer):
         self.lossObj = lossObject
 
         self.learningRate = learningRate
-        self.decayFactor = forgettingFactorM
-        self.forgettingfactorRMS = forgettingFactorR
-
+        self.forgettingFactorM = forgettingFactorM
+        self.forgettingFactorR = forgettingFactorR
 
         # Moment/velocity term
         self.moment = np.zeros_like(initPos)
-        #For the bias corrected term
+        # For the bias corrected term
         self.biasCorrectedMoment = np.zeros_like(initPos)
 
-        #For the second moment in adam, for the rms part
+        # For the second moment in adam, for the rms part
         self.RMSMoment = np.zeros_like(initPos)
-        #For the bias corrected term
+        # For the bias corrected term
         self.biasCorrectedRMSM = np.zeros_like(initPos)
 
-        # Placeholder for position
-        #self.pos = initPos
+        # For avoiding zero division in adam
+        self.epsilon = 1e-2
 
-        #For avoiding zero division in adam
-        self.epsilon = 10 ** -2
-
+        # Number of iterations/steps taken
         self.iteration = 1
 
     def step(self):
-        #Moment term
-        self.moment = self.decayFactor * self.moment + (1 - self.decayFactor) * self.lossObj.evaluate_gradient(self.pos)
-        #RMS term
-        self.RMSMoment = self.forgettingfactorRMS * self.RMSMoment + (1 - self.forgettingfactorRMS) * ((self.lossObj.evaluate_gradient(self.pos))**2)
+        # Moment term
+        self.moment = self.forgettingFactorM * self.moment + (1 - self.forgettingFactorM) * self.lossObj.evaluate_gradient(self.pos)
 
-        #Moment bias correction
-        self.biasCorrectedMoment = self.moment / (1 - (self.decayFactor ** self.iteration))
+        # RMS term
+        self.RMSMoment = self.forgettingFactorR * self.RMSMoment + (1 - self.forgettingFactorR) * ((self.lossObj.evaluate_gradient(self.pos))**2)
 
-        #RMS bias correction
-        self.biasCorrectedRMSM = self.RMSMoment / (1 - (self.forgettingfactorRMS ** self.iteration))
+        # Moment bias correction
+        self.biasCorrectedMoment = self.moment / (1 - (self.forgettingFactorM ** self.iteration))
 
-        #Taking the step
+        # RMS bias correction
+        self.biasCorrectedRMSM = self.RMSMoment / (1 - (self.forgettingFactorR ** self.iteration))
+
+        # Taking the step
         self.pos = self.pos - self.learningRate * (self.biasCorrectedMoment) / (np.sqrt(self.biasCorrectedRMSM) + self.epsilon)
 
         self.iteration = self.iteration + 1
@@ -57,7 +55,7 @@ class Adam(opt.Optimizer):
         return self.pos
 
     def getHyperparamStr(self):
-        return f"lr: {self.learningRate}, beta1: {self.decayFactor}, beta2: {self.forgettingfactorRMS}"
+        return f"lr: {self.learningRate}, beta1: {self.forgettingFactorM}, beta2: {self.forgettingFactorR}"
     
     def getHyperparamDict(self):
-        return {"learningRate": self.learningRate, "decayFactor": self.decayFactor, "forgettingfactorRMS": self.forgettingfactorRMS}
+        return {"learningRate": self.learningRate, "forgettingFactorM": self.forgettingFactorM, "forgettingFactorR": self.forgettingFactorR}
