@@ -5,22 +5,22 @@ from optimizers import sgd, momentum, nesterov, adam
 from QuadraticForm import QuadraticForm
 from Rosenbrock import Rosenbrock
 from LogisticRegression import LogisticRegression
+from DataLoader import loadDataAsNumpyArray
 
 # Plotting
-from utils import plotPath, plotHistoryGraph, plotPath_3d
+from utils import plotPath, plotHistoryGraph, plotPath_3d, train
 import matplotlib.pyplot as plt
 
 
 def testConvergenceSingleOptimizer(optimizer, tol, nr_epochs):
     posHistory, lossHistory = optimizer(nr_epochs)
 
-    # Estimate errors as distance between two successive positions or from the minima (extrema) if known
+    # Estimate errors
     minima = optimizer.lossObj.minima()
     if minima is not None:
-        errors = np.linalg.norm(posHistory - minima, axis=1)
+        errors = np.linalg.norm(posHistory - minima, axis=1) # Estimate error as distance to a known minima
     else:
-        errors = np.linalg.norm(np.diff(posHistory, axis=0),
-                                axis=1)  # Estimate error as change in position (not ideal, but can indicate convergence behavior)
+        errors = np.linalg.norm(np.diff(posHistory, axis=0), axis=1)  # Estimate error as change in position
 
     # Convergence ratios
     conv_ratios = errors[1:] / (errors[:-1] + 1e-15)
@@ -56,63 +56,71 @@ def estimateOrder(errors):
 
 def testConvergenceBatched(optimizerList, lossObj, nr_epochs = 100):
     # Setup
+    analyze = False
     minima = lossObj.minima()
     errors = [[] for _ in range(len(optimizerList))]
     hasConvergedCheckList = [False for _ in range(len(optimizerList))]
 
     # Start testing
     for epoch in range(1, nr_epochs + 1):
+        # Save the history per epoch
+        for optimizer in optimizerList:
+            optimizer.savePosition()
+
         # Shuffle batches
         lossObj.fillRandomBatchList()
         
-        # Step each optimizer in parallel, using the same batch.
-        for batch in range(lossObj.numberOfBatches): # here, lossObj.numberOfBatches = len(lossObj.randomBatchList)
+        # Step each optimizer in parallel (using the same batch).
+        for batch in range(lossObj.numberOfBatches):
             for index, optimizer in enumerate(optimizerList):
                 if hasConvergedCheckList[index] == False:
                     optimizer.step()
 
-                    # Calculate error and save it
-                    error = np.linalg.norm(optimizer.pos - minima)
-                    errors[index].append(error)
+                    # NOTE: Skip calculations due to issues with minima. Potentially change to check convergence in loss values instead of absolute error from minima.                
+                    if analyze:
+                        # Calculate error and save it
+                        error = np.linalg.norm(optimizer.pos - minima)
+                        errors[index].append(error)
 
-                    # Check convergence
-                    if error < 1e-4:
-                        N_steps = epoch * (lossObj.numberOfBatches - 1) + batch
-                        print(f"{optimizer.__class__.__name__} converged in {N_steps} steps and {epoch} epochs.")
+                        # Check convergence
+                        if error < 1e-4:
+                            hasConvergedCheckList[index] = True
+                            N_steps = epoch * (lossObj.numberOfBatches - 1) + batch
 
-                        # Present
-                        print(f"Optimizer: {optimizer.__class__.__name__}")
-                        print(f"Final position: {optimizer.pos}, Minima: {minima}")
-                        print(f"Number of steps to reach tolerance: {N_steps}")
-                        # print(f"Convergence ratios: {conv_ratios}")
-                        # print(f"Estimated convergence order: {q}")
-
-                        hasConvergedCheckList[index] = True
-
+                            # Present
+                            print(f"{optimizer.__class__.__name__} converged in {N_steps} steps and {epoch} epochs.")
+                            print(f"Optimizer: {optimizer.__class__.__name__}")
+                            print(f"Final position: {optimizer.pos}, Minima: {minima}")
+                            print(f"Number of steps to reach tolerance: {N_steps}")
+                            # print(f"Convergence ratios: {conv_ratios}")
+                            # print(f"Estimated convergence order: {q}")
+                    
             # Step to the next batch
-            lossObj.currentBatch = lossObj.currentBatch + 1
-
+            lossObj.currentBatchIndex = lossObj.currentBatchIndex + 1
 
 def main():
     # Setup problem
-    data = [np.array([
-            [2, 3],      # [feature 1, feature 2], sample 1
-            [0, 2]
-            ]),
-            np.array([1,-1]) # [label example 1, label example 2]
-            ]
-    lossObj = LogisticRegression(data=data)
+    X, y = loadDataAsNumpyArray("datasets/australian_scaled")
+    lossObj = LogisticRegression(data=[X, y])
 
     # Setup optimizers
-    initPos = np.array( 
-        [0.5, 0.5]
-    )
-    optSGD = sgd.SGD(lossObj, initPos, lr=0.01)
+    nrFeatures = lossObj.xDataLength
+    initPos = np.random.uniform(-10, 10, nrFeatures) # if the same position is wanted, set the seed using: np.random.seed(...)
+
+    optSGD = sgd.SGD(lossObj, initPos, lr=0.1)
     optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.1, decayFactor=0.9)
     optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.1, decayFactor=0.9)
     optAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    
+    # Run the test
+    optimizerList=[optSGD, optNesterov, optMomentum, optAdam]
+    testConvergenceBatched(optimizerList, lossObj, nr_epochs=25)
 
-    testConvergenceBatched(optimizerList=[optSGD, optNesterov, optMomentum, optAdam], lossObj=lossObj)
+    # Plotting & Presenting
+    plt.figure()
+    for optimizer in optimizerList:
+        plotHistoryGraph(optimizer.lossHistory, f"Loss history for {optimizer.__class__.__name__}", f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", "Loss")
+    plt.show()
 
 if __name__ == "__main__":
     main()

@@ -6,15 +6,11 @@ class LogisticRegression(LossObj):
         super().__init__(data)
 
     def evaluate_loss(self, position):
-        return np.mean(np.log(1 + np.exp(-self.data[:, 1] * (self.data[:, 0] @ position))))
+        z = self.y * (self.X @ position)
+        return np.mean(np.logaddexp(0, -z))
 
-    def evaluate_loss2(self, position):
-
-        x = np.numarray(self.data[0])
-        #Might be more stable if another log programming function is used.
-        return (1/self.xDataLength) * np.sum(np.log(1 + np.exp(-self.data[1] * (x @ position))))
-
-    def evaluate_gradient(self, position, batch=None):
-        batch = np.array(self.randomBatchList[self.currentBatch])
-        return -(batch[:, 0].T @ (batch[:, 1] / (1 + np.exp(batch[:, 1] * (batch[:, 0] @ position))))) / len(batch)
-        
+    def evaluate_gradient(self, position):
+        X, y = self.getCurrentBatch()
+        z = y * (X @ position)       
+        weights = -y / (1 + np.exp(z))
+        return (X.T @ weights) / len(y)

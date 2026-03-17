@@ -13,10 +13,14 @@ class LossObj:
         self.amountOfDataVectors = 1
         self.currentBatchIndex = 0
 
+        # Pre-split the data (for calculating loss over the entire dataset)
+        self.X = np.array(self.data[0])
+        self.y = np.array(self.data[1])
+
         # Get the length of the indata. The other data should be of similar length.
         self.xDataLength = 1
         if len(self.data) > 0:
-            self.xDataLength = len(self.data[0])
+            self.xDataLength = len(self.X[0])
 
             # Get the amount of data vectors (X,Y,...)
             self.amountOfDataVectors = len(self.data)
@@ -50,10 +54,10 @@ class LossObj:
         """
         return np.array([])
 
-    def getNextBatch(self):
+    def getCurrentBatch(self):
         batch = self.randomBatchList[self.currentBatchIndex]
-        X = batch[0] # first data vector is X
-        y = batch[1] # second data vector is y
+        X = batch[0] # first element vector is X
+        y = batch[1] # second element vector is y
         return np.array(X), np.array(y)
 
     def fillRandomBatchList(self):

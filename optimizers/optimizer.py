@@ -34,6 +34,11 @@ class Optimizer:
 
         return np.array(self.posHistory), np.array(self.lossHistory)
 
+    def savePosition(self):
+        currentPos = self.pos.copy()
+        self.posHistory.append(currentPos)
+        self.lossHistory.append(self.lossObj.evaluate_loss(currentPos))
+
     def getHyperparamStr(self):
         return ""
     
