@@ -2,9 +2,13 @@ import numpy as np
 
 # Project files
 from optimizers import sgd, momentum, nesterov, adam
+
+# LossObjects
 from QuadraticForm import QuadraticForm
 from Rosenbrock import Rosenbrock
 from LogisticRegression import LogisticRegression
+
+# Dataloader
 from DataLoader import loadDataAsNumpyArray
 
 # Plotting
@@ -100,8 +104,8 @@ def testConvergenceBatched(optimizerList, lossObj, nr_epochs = 100):
 
 def main():
     # Setup problem
-    X, y = loadDataAsNumpyArray("datasets/australian_scaled")
-    lossObj = LogisticRegression(data=[X, y])
+    X, y = loadDataAsNumpyArray("datasets/rcv1_train.binary") # rcv1_train.binary or australian_scale
+    lossObj = LogisticRegression(data=[X, y]) # QuadraticForm(), Rosenbrock()
 
     # Setup optimizers
     nrFeatures = lossObj.xDataLength

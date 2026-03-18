@@ -9,7 +9,7 @@ from optimizers import sgd, nesterov, momentum, adam
 from utils import plotHistoryGraph, train
 
 
-def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict()):
+def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict(), nrEpochs = 100):
     """"
     Results will be a dictionary on the following format:
         results = {
@@ -20,7 +20,7 @@ def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict
     Use hyperparameterConfig to manually set predefined values for the tests, as opposed to generating from base value.
     """
     # Setup
-    optimizerClass = baseCase.__class__
+    optimizerBaseCaseClass = baseCase.__class__
     lossObj = baseCase.lossObj
     initPos = baseCase.pos.copy()
     results = deepcopy(baseCase.getHyperparamDict())
@@ -44,11 +44,11 @@ def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict
             hyperparamsTEMP[hyperparamName] = value
 
             # Create and save the adjusted optimizer
-            opt = optimizerClass(lossObj, initPos, **hyperparamsTEMP)
+            opt = optimizerBaseCaseClass(lossObj, initPos, **hyperparamsTEMP)
             results[hyperparamName].append(opt)
             
         # Run the optimization/training for all optimizers with the 'hyperparamName' parameter adjusted. Histories are stored in the optimizer objects
-        train(optimizerList=results[hyperparamName], nrEpochs=100)
+        train(optimizerList=results[hyperparamName], nrEpochs=nrEpochs)
 
     return results
 
@@ -65,15 +65,15 @@ def main():
 
     # Define an associated hyperparameter config dictionary if desired (missing values will be generated in the test)
     optimizerList = [
-        (optSGD, {"lr": [0.01, 0.1, 0.2]}),
+        (optSGD, {"lr": [0.001, 0.01, 0.2]}),
         (optNesterov, dict()),
-        (optMomentum, dict()), 
+        (optMomentum, dict()),
         (optAdam, dict())
         ]
 
     # Run the test for each optimizer
     for opt, hConfig in optimizerList:
-        results = test_hyperparameter_sensitivity(opt, hyperparamConfig=hConfig)
+        results = test_hyperparameter_sensitivity(opt, hyperparamConfig=hConfig, nrEpochs = 500)
 
         # Present
         # TODO: Print quantitative measurements
