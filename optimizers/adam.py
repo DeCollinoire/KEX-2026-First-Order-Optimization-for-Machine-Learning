@@ -59,3 +59,7 @@ class Adam(opt.Optimizer):
     
     def getHyperparamDict(self):
         return {"learningRate": self.learningRate, "forgettingFactorM": self.forgettingFactorM, "forgettingFactorR": self.forgettingFactorR}
+
+    def reset(self):
+        #To be added
+        pass
