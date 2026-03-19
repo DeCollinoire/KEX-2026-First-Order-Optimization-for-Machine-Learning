@@ -13,13 +13,13 @@ class LossObj:
         self.amountOfDataVectors = 1
         self.currentBatchIndex = 0
 
-        # Pre-split the data (for calculating loss over the entire dataset)
-        self.X = np.array(self.data[0])
-        self.y = np.array(self.data[1])
 
         # Get the length of the indata. The other data should be of similar length.
         self.xDataLength = 1
         if len(self.data) > 0:
+            # Pre-split the data (for calculating loss over the entire dataset)
+            self.X = np.array(self.data[0])
+            self.y = np.array(self.data[1])
             self.xDataLength = len(self.X[0])
 
             # Get the amount of data vectors (X,Y,...)

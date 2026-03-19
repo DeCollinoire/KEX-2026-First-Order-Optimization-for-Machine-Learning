@@ -5,12 +5,16 @@ class LogisticRegression(LossObj):
     def __init__(self, data):
         super().__init__(data)
 
-    def evaluate_loss(self, position):
-        z = self.y * (self.X @ position)
-        return np.mean(np.logaddexp(0, -z))
+    def evaluate_loss(self, weights):
+        # Old version: might cause rounding errors
+        # z = self.y * (self.X @ position)
+        # return np.mean(np.logaddexp(0, -z))
+        
+        # Might be more stable if another log programming function is used.
+        x = np.array(self.data[0])
+        return (1/self.xDataLength) * np.sum(np.log(1 + np.exp(-self.data[1] * (x @ weights))))
 
-    def evaluate_gradient(self, position):
+    def evaluate_gradient(self, weights):
         X, y = self.getCurrentBatch()
-        z = y * (X @ position)       
-        weights = -y / (1 + np.exp(z))
-        return (X.T @ weights) / len(y)
+        return -(X.T @ (y / (1 + np.exp(y * (X @ weights))))) / len(y)
+
