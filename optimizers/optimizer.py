@@ -47,3 +47,8 @@ class Optimizer:
 
     def step(self):
         return np.array([])
+
+    def resetHistory(self):
+        self.posHistory = []
+        self.lossHistory = []
+        return
