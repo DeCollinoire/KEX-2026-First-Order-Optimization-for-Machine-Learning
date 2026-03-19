@@ -52,3 +52,6 @@ class Optimizer:
         self.posHistory = []
         self.lossHistory = []
         return
+
+    def reset(self):
+        pass
