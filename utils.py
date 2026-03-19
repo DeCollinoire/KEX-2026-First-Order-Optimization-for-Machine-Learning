@@ -85,6 +85,7 @@ def train(optimizerList, lossObj=None, nrEpochs=100):
         # Shuffle batches
         lossObj.fillRandomBatchList()
 
+        lossObj.currentBatchIndex = 0
         for batch in range(lossObj.numberOfBatches):
             for index, optimizer in enumerate(optimizerList):
                 # Store history first (to include the inital position)
