@@ -20,5 +20,6 @@ class SGD(Optimizer):
         self.pos -= self.lr * grad
         return self.pos
 
+
     def reset(self):
         self.resetHistory()

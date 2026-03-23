@@ -28,7 +28,6 @@ class Nesterov(Optimizer):
         self.pos -= self.velocity
         return self.pos
 
-
     def reset(self):
         self.resetHistory()
 

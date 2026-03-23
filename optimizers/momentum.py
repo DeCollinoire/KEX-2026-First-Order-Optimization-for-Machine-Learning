@@ -33,6 +33,7 @@ class Momentum(opt.Optimizer):
     def getHyperparamDict(self):
         return {"learningRate": self.learningRate, "decayFactor": self.decayFactor}
 
+
     def reset(self):
         self.resetHistory()
 
