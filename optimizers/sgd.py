@@ -19,3 +19,6 @@ class SGD(Optimizer):
         grad = self.lossObj.evaluate_gradient(self.pos)
         self.pos -= self.lr * grad
         return self.pos
+
+    def reset(self):
+        self.resetHistory()

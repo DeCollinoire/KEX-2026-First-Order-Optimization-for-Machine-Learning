@@ -16,6 +16,8 @@ class Momentum(opt.Optimizer):
         #Placeholder for position
         #self.pos = initPos
 
+        self.initPos = initPos
+
     #Fix memory
     def step(self):
 
@@ -31,3 +33,8 @@ class Momentum(opt.Optimizer):
     def getHyperparamDict(self):
         return {"learningRate": self.learningRate, "decayFactor": self.decayFactor}
 
+    def reset(self):
+        self.resetHistory()
+
+        # Moment/velocity term
+        self.moment = np.zeros_like(self.initPos)
