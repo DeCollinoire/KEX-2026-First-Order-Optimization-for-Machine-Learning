@@ -97,3 +97,14 @@ def train(optimizerList, lossObj=None, nrEpochs=100):
             # On to next batch for calculating gradient and so on
             lossObj.currentBatchIndex = lossObj.currentBatchIndex + 1
     return optimizerList
+
+
+
+def setupProblem(problemName):
+    pass
+    """    
+    if problemName == "Rosenbrock":
+        lossObj = Rosenbrock()
+        init
+        return
+        """

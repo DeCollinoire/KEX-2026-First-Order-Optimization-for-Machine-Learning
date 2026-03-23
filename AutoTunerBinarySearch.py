@@ -7,7 +7,9 @@ from QuadraticForm import QuadraticForm
 from optimizers.optimizer import Optimizer
 from optimizers import sgd, nesterov, momentum, adam
 from utils import plotHistoryGraph, train
-
+from DataLoader import loadDataAsNumpyArray
+from LogisticRegression import LogisticRegression
+from Rosenbrock import Rosenbrock
 
 class autoTuneBinSearcher:
     def __init__(self, maxOptList = None, minOptList = None): # maxOpt: Optimizer, minOpt: Optimizer, maxOptList = None, minOptList = None):
@@ -118,7 +120,7 @@ def optimizeHypeparamAdam(lossObj, initPosList, keyattributeList):
     maxOptList = []
     minOptList = []
     for pos in initPosList:
-        maxOptList.append(adam.Adam(lossObject=lossObj, initPos=pos, learningRate=1, forgettingFactorM=0.9, forgettingFactorR=0.999))
+        maxOptList.append(adam.Adam(lossObject=lossObj, initPos=pos, learningRate=10, forgettingFactorM=0.9, forgettingFactorR=0.999))
         minOptList.append(adam.Adam(lossObject=lossObj, initPos=pos, learningRate=0.001, forgettingFactorM=0.9, forgettingFactorR=0.999))
     #optMaxAdam = adam.Adam(lossObject=lossObj, initPos=initPos, learningRate=1, forgettingFactorM=0.9, forgettingFactorR=0.999)
     #optMinAdam = adam.Adam(lossObject=lossObj, initPos=initPos, learningRate=0.001, forgettingFactorM=0.9, forgettingFactorR=0.999)
@@ -127,7 +129,7 @@ def optimizeHypeparamAdam(lossObj, initPosList, keyattributeList):
 
     #keyattributeList = ["lr"]
 
-    epochs = 100
+    epochs = 25
     binarySearchIterations = 100
     cycle = 1
     resultIngOptimizerHolder = [None]
@@ -143,8 +145,17 @@ def main():
 
 
     #Setup loss object
-    lossObj = QuadraticForm()  # Random positive definite QDF
-    initPosList = [np.array([5.0, 4.0])]
+    #lossObj = QuadraticForm()  # Random positive definite QDF
+    #initPosList = [np.array([5.0, 4.0])]
+
+    # Logistic Regression
+    X, y = loadDataAsNumpyArray("datasets/australian_scale")
+    lossObj = LogisticRegression(data=[X,y])
+    initPosList = [np.random.uniform(-10, 10, lossObj.xDataLength) for _ in range(1)] # if the same position is wanted, set the seed using: np.random.seed(...)
+
+    # Rosenbrock
+    #lossObj = Rosenbrock(10)
+    #initPosList = [np.array([5.0, 4.0])]
 
     tunedAdam = optimizeHypeparamAdam(lossObj=lossObj, initPosList=initPosList, keyattributeList=["learningRate"])
     print(tunedAdam.getHyperparamStr())

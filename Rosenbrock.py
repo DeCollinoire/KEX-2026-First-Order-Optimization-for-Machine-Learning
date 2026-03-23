@@ -3,6 +3,7 @@ from optimizers.loss.loss import LossObj
 
 class Rosenbrock(LossObj):
     def __init__(self, dim):
+        """ Note that dim is only used for determining the analytical minima. The gradient and loss functions can handle 'positions' of arbitrary dimensions"""
         super().__init__()
         self.dim = dim
 

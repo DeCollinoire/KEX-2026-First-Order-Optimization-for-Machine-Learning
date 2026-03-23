@@ -126,5 +126,10 @@ def main():
         plotHistoryGraph(optimizer.lossHistory, f"Loss history for {optimizer.__class__.__name__}", f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", "Loss")
     plt.show()
 
+    plt.figure()
+    for optimizer in optimizerList:
+        plotHistoryGraph(optimizer.lossHistory, f"Loss history for {optimizer.__class__.__name__}", f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", "Loss")
+    plt.show()    
+
 if __name__ == "__main__":
     main()

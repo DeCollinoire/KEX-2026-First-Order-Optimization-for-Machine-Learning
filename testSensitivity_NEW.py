@@ -7,7 +7,9 @@ from QuadraticForm import QuadraticForm
 from optimizers.optimizer import Optimizer
 from optimizers import sgd, nesterov, momentum, adam
 from utils import plotHistoryGraph, train
-
+from DataLoader import loadDataAsNumpyArray
+from LogisticRegression import LogisticRegression
+from Rosenbrock import Rosenbrock
 
 def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict(), nrEpochs = 100):
     """"
@@ -54,9 +56,18 @@ def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict
 
 def main():
     # Setup loss object
-    lossObj = QuadraticForm()   # Random positive definite QDF
-    initPos = np.array([5.0, 4.0])
-    
+    # lossObj = QuadraticForm()   # Random positive definite QDF
+    # initPos = np.array([5.0, 4.0])
+
+    # Logistic Regression
+    X, y = loadDataAsNumpyArray("datasets/australian_scale")
+    lossObj = LogisticRegression(data=[X,y], batchSize=64)
+    initPos = np.random.uniform(-10, 10, lossObj.xDataLength) # if the same position is wanted, set the seed using: np.random.seed(...)
+
+    # Rosenbrock
+    lossObj = Rosenbrock(5)
+    initPos = np.array([1.5, 1.5])
+
     # Setup base case optimizers
     optSGD = sgd.SGD(lossObj, initPos, lr=0.1)
     optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.1, decayFactor=0.9)
@@ -65,10 +76,10 @@ def main():
 
     # Define an associated hyperparameter config dictionary if desired (missing values will be generated in the test)
     optimizerList = [
-        (optSGD, {"lr": [0.001, 0.01, 0.2]}),
+        (optSGD, {"lr": [0.001, 0.01, 0.1]}),
         (optNesterov, dict()),
         (optMomentum, dict()),
-        (optAdam, dict())
+        (optAdam, dict({"learningRate": [0.01, 0.1, 0.78, 1]}))
         ]
 
     # Run the test for each optimizer
