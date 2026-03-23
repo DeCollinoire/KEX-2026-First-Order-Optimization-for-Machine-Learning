@@ -10,13 +10,18 @@ from utils import plotHistoryGraph, train
 
 
 class autoTuneBinSearcher:
-    def __init__(self, maxOpt: Optimizer, minOpt: Optimizer):
+    def __init__(self, maxOptList = None, minOptList = None): # maxOpt: Optimizer, minOpt: Optimizer, maxOptList = None, minOptList = None):
         # With maximum and minimum for the search interval.
-        self.maxOpt = maxOpt
-        self.minOpt = minOpt
+        #self.maxOpt = maxOpt
+        #self.minOpt = minOpt
 
-        self.maxDict = maxOpt.getHyperparamDict()
-        self.minDict = minOpt.getHyperparamDict()
+        self.maxOptList = maxOptList
+        self.minOptList = minOptList
+
+        self.allOptList = maxOptList + minOptList
+
+        self.maxDict = maxOptList[0].getHyperparamDict()
+        self.minDict = minOptList[0].getHyperparamDict()
 
 
 
@@ -25,22 +30,57 @@ class autoTuneBinSearcher:
 
         currentAnswer = [False]
         for i in range(iterations):
-            self.minOpt.reset()
-            self.maxOpt.reset()
+            #self.minOpt.reset() #***
 
-            self.maxDict = self.maxOpt.getHyperparamDict()
-            self.minDict = self.minOpt.getHyperparamDict()
+            for minOpt in self.minOptList:
+                minOpt.reset()
 
-            train([self.maxOpt, self.minOpt], nrEpochs=nrEpochs)
+            #self.maxOpt.reset() #***
 
-            if self.maxOpt.lossHistory[-1] >= self.minOpt.lossHistory[-1]:
-                setattr(self.maxOpt, keyToAtrDict, ((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict]) #((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict]
-                currentAnswer[0] = self.maxOpt
+            for maxOpt in self.maxOptList:
+                maxOpt.reset()
+
+            self.maxDict = self.maxOptList[0].getHyperparamDict()
+            self.minDict = self.minOptList[0].getHyperparamDict()
+
+            train(self.allOptList, nrEpochs=nrEpochs)
+
+            meanMaxOptLoss = calculateMeanFinalLoss(self.maxOptList)
+            meanMinOptLoss = calculateMeanFinalLoss(self.minOptList)
+
+            if meanMaxOptLoss >= meanMinOptLoss:
+
+                for maxOpt in self.maxOptList:
+                    setattr(maxOpt, keyToAtrDict, ((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict])
+
+                #setattr(self.maxOpt, keyToAtrDict, ((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict])  # ((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict]
+                currentAnswer[0] = self.maxOptList[0]
             else:
-                setattr(self.minOpt, keyToAtrDict, ((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict])#self.minDict[keyToAtrDict] = ((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict]
-                currentAnswer[0] = self.minOpt
+
+                for minOpt in self.minOptList:
+                    setattr(minOpt, keyToAtrDict, ((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict])  # self.minDict[keyToAtrDict] = ((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict]
+                currentAnswer[0] = self.minOptList[0]
 
         return currentAnswer[0]
+
+        # currentAnswer = [False]
+        # for i in range(iterations):
+        #     self.minOpt.reset()
+        #     self.maxOpt.reset()
+        #
+        #     self.maxDict = self.maxOpt.getHyperparamDict()
+        #     self.minDict = self.minOpt.getHyperparamDict()
+        #
+        #     train([self.maxOpt, self.minOpt], nrEpochs=nrEpochs)
+        #
+        #     if self.maxOpt.lossHistory[-1] >= self.minOpt.lossHistory[-1]:
+        #         setattr(self.maxOpt, keyToAtrDict, ((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict]) #((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict]
+        #         currentAnswer[0] = self.maxOpt
+        #     else:
+        #         setattr(self.minOpt, keyToAtrDict, ((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict])#self.minDict[keyToAtrDict] = ((self.maxDict[keyToAtrDict] - self.minDict[keyToAtrDict]) / 2) + self.minDict[keyToAtrDict]
+        #         currentAnswer[0] = self.minOpt
+
+        # return currentAnswer[0]
 
 
         # if lossObj is None:
@@ -64,15 +104,26 @@ class autoTuneBinSearcher:
         #         lossObj.currentBatchIndex = lossObj.currentBatchIndex + 1
         # return
 
-def optimizeHypeparamAdam(lossObj, initPos, keyattributeList):
+def calculateMeanFinalLoss(optList):
+    sumLoss = 0
+    for opt in optList:
+        sumLoss = sumLoss + opt.lossHistory[-1]
+    return sumLoss / len(optList)
+
+def optimizeHypeparamAdam(lossObj, initPosList, keyattributeList):
     # Setup loss object
     #lossObj = QuadraticForm()  # Random positive definite QDF
     #initPos = np.array([5.0, 4.0])
 
-    optMaxAdam = adam.Adam(lossObject=lossObj, initPos=initPos, learningRate=1, forgettingFactorM=0.9, forgettingFactorR=0.999)
-    optMinAdam = adam.Adam(lossObject=lossObj, initPos=initPos, learningRate=0.001, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    maxOptList = []
+    minOptList = []
+    for pos in initPosList:
+        maxOptList.append(adam.Adam(lossObject=lossObj, initPos=pos, learningRate=1, forgettingFactorM=0.9, forgettingFactorR=0.999))
+        minOptList.append(adam.Adam(lossObject=lossObj, initPos=pos, learningRate=0.001, forgettingFactorM=0.9, forgettingFactorR=0.999))
+    #optMaxAdam = adam.Adam(lossObject=lossObj, initPos=initPos, learningRate=1, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    #optMinAdam = adam.Adam(lossObject=lossObj, initPos=initPos, learningRate=0.001, forgettingFactorM=0.9, forgettingFactorR=0.999)
 
-    binSearcher = autoTuneBinSearcher(maxOpt=optMaxAdam, minOpt=optMinAdam)
+    binSearcher = autoTuneBinSearcher(maxOptList=maxOptList, minOptList=minOptList)
 
     #keyattributeList = ["lr"]
 
@@ -93,9 +144,9 @@ def main():
 
     #Setup loss object
     lossObj = QuadraticForm()  # Random positive definite QDF
-    initPos = np.array([5.0, 4.0])
+    initPosList = [np.array([5.0, 4.0])]
 
-    tunedAdam = optimizeHypeparamAdam(lossObj=lossObj, initPos=initPos, keyattributeList=["learningRate"])
+    tunedAdam = optimizeHypeparamAdam(lossObj=lossObj, initPosList=initPosList, keyattributeList=["learningRate"])
     print(tunedAdam.getHyperparamStr())
     # #Setup loss object
     # lossObj = QuadraticForm()  # Random positive definite QDF
