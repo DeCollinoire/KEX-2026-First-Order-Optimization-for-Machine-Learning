@@ -65,7 +65,7 @@ def main():
 
     allOptimizers = []
     for optGroup in optimizerGroupList:
-        allOptimizers.append(optGroup.getAllOptimizers())
+        allOptimizers.extend(optGroup.getAllOptimizers())
 
     train(allOptimizers, nrEpochs=100)
 
