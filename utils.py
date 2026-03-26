@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import 
 
 def plotPath(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
     # Create a grid of points
