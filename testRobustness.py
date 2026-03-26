@@ -40,6 +40,7 @@ def testRobustness(optimizerList: List[Optimizer], batchSizeTestValues):
 def main():
     np.random.seed(10)
     lossObj, initPos = setupProblem("LogReg", datasetFilepath="datasets/australian_scaled")  # australian_scaled, australian, rcv1_train.binary
+    # lossObj, initPos = setupProblem("LogReg", datasetFilepath="datasets/rcv1_train.binary")
 
     # Setup base case optimizers
     optSGD = sgd.SGD(lossObj, initPos, lr=0.1)
