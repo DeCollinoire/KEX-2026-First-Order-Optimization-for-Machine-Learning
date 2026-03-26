@@ -257,7 +257,6 @@ def optimizeHypeparamSGD(lossObj, initPosList, keyattributeList):
 
 def main():
 
-
     # Setup loss object
     lossObj = QuadraticForm()  # Random positive definite QDF
     initPosList = [np.array([5.0, 4.0])]
