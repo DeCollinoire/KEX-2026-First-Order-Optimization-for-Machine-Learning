@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import 
 
 def plotPath(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
     # Create a grid of points
@@ -100,31 +99,38 @@ def train(optimizerList, lossObj=None, nrEpochs=100):
     return optimizerList
 
 
-def setupProblem(problemName):
-    """ Returns a loss object and an initial position
+def setupProblem(problemName, dim = 2, initRange = 10, datasetFilepath = "datasets/australian_scale", batchSize = 1):
+    """ 
+    Returns a loss object and an initial position.
+    Params:
+    - `dim` : Dimension of the problem. Does not affect QDF (see below).
+    - `initRange` : Range for the initial position coordinate values.
+    - `datasetFilepath` : File path for a chosen dataset, for loss objects with data (only Logistic Regression).
+    - `batchSize` : Batch size for loss objects with data (only Logistic Regression).
+
     Problems to choose from:
-    - 'QDF' : Random, 2D, positive definite quadratic form
-    - 'Rosenbrock' : Rosenbrock of dimension 10 
-    - 'LogReg' : Logistic regression
+    - `QDF` : Random, 2D, positive definite quadratic form
+    - `Rosenbrock` : Rosenbrock of dimension `dim` (`dim` is defined for the loss object to return the correct dimension for the minima)
+    - `LogReg` : Logistic regression, specify datasetFilepath to choose dataset, else defaults to `australian_scale`
+
+    The dimension of the returned initial position adapts to the chosen dimension `dim` (except for QDF, which is always 2D).
+    Note that each coordinate for the initial position is a uniformly random value from `-initRange` to `initRange`, with `initRange = 10` by default
     """
-    # Only do imports when we get the actual problem
+    # Only do imports once we know the actual problem
     if problemName == "QDF":
         from QuadraticForm import QuadraticForm
-        lossObj = QuadraticForm()
-        initPos = np.array([0.1])
-        return
+        lossObj = QuadraticForm()   # Always random if not supplied with matrix 'A' and vector 'b'
+        initPos = np.random.uniform(-initRange, initRange, size = 2) # Always use 2D 
     if problemName == "Rosenbrock":
         from Rosenbrock import Rosenbrock
-        lossObj = Rosenbrock(10)
-        initPos = np.array([0.1])
-        return
+        lossObj = Rosenbrock(dim)
+        initPos = np.random.uniform(-initRange, initRange, size = dim)
     if problemName == "LogReg":
         from LogisticRegression import LogisticRegression
         from DataLoader import loadDataAsNumpyArray
-        X, y = loadDataAsNumpyArray("datasets/australian")
-        lossObj = LogisticRegression(data = [X,y])
-        initPos = None
+        X, y = loadDataAsNumpyArray(datasetFilepath)
+        lossObj = LogisticRegression(data = [X,y], batchSize=batchSize)
+        initPos = np.random.uniform(-initRange, initRange, size = lossObj.xDataLength)
     else:
         raise NotImplementedError(f"The problem '{problemName}' is not implemented.")
-
     return lossObj, initPos
