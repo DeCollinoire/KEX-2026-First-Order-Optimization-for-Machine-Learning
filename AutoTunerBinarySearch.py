@@ -7,12 +7,12 @@ from QuadraticForm import QuadraticForm
 from optimizers.optimizer import Optimizer
 from optimizers import sgd, nesterov, momentum, adam
 from utils import plotHistoryGraph, train
-from DataLoader import loadDataAsNumpyArray
+#from DataLoader import loadDataAsNumpyArray
 from LogisticRegression import LogisticRegression
 from Rosenbrock import Rosenbrock
 
 class autoTuneBinSearcher:
-    def __init__(self, maxOptList = None, minOptList = None): # maxOpt: Optimizer, minOpt: Optimizer, maxOptList = None, minOptList = None):
+    def __init__(self, maxOptList, minOptList): # maxOpt: Optimizer, minOpt: Optimizer, maxOptList = None, minOptList = None):
         # With maximum and minimum for the search interval.
         #self.maxOpt = maxOpt
         #self.minOpt = minOpt
@@ -26,10 +26,12 @@ class autoTuneBinSearcher:
         self.minDict = minOptList[0].getHyperparamDict()
 
 
-
+#Can be improved by making new boundries truly encapsulate a better interval.
     def autoTuneBinarySearch(self, keyToAtrDict, nrEpochs=100, iterations = 10):
         #Does a binary search and returns the latest updated optimizer
 
+        #oldBestDict = {}
+        #oldBestLoss = None
         currentAnswer = [False]
         for i in range(iterations):
             #self.minOpt.reset() #***
@@ -112,6 +114,16 @@ def calculateMeanFinalLoss(optList):
         sumLoss = sumLoss + opt.lossHistory[-1]
     return sumLoss / len(optList)
 
+def outerSearchLoop(keyattributeList, binSearcher: autoTuneBinSearcher, epochs=25, binarySearchIterations = 10, cycle = 1):
+    resultIngOptimizerHolder = [None]
+    for i in range(cycle):
+        for atrStr in keyattributeList:
+            resultIngOptimizerHolder[0] = binSearcher.autoTuneBinarySearch(atrStr, nrEpochs=epochs, iterations=binarySearchIterations)
+
+    # print(resultIngOptimizerHolder[0].getHyperparamDict())
+    return resultIngOptimizerHolder[0]
+
+
 def optimizeHypeparamAdam(lossObj, initPosList, keyattributeList):
     # Setup loss object
     #lossObj = QuadraticForm()  # Random positive definite QDF
@@ -129,29 +141,131 @@ def optimizeHypeparamAdam(lossObj, initPosList, keyattributeList):
 
     #keyattributeList = ["lr"]
 
+
     epochs = 25
     binarySearchIterations = 100
-    cycle = 1
+    cycle = 1  #Cycles not working entirely as intended yet
     resultIngOptimizerHolder = [None]
-    for i in range(cycle):
-        for atrStr in keyattributeList:
-            resultIngOptimizerHolder[0] = binSearcher.autoTuneBinarySearch(atrStr, nrEpochs=epochs, iterations=binarySearchIterations)
+    # for i in range(cycle):
+    #     for atrStr in keyattributeList:
+    #         resultIngOptimizerHolder[0] = binSearcher.autoTuneBinarySearch(atrStr, nrEpochs=epochs, iterations=binarySearchIterations)
 
     #print(resultIngOptimizerHolder[0].getHyperparamDict())
+
+
+    resultIngOptimizerHolder[0] = outerSearchLoop(keyattributeList=keyattributeList, binSearcher=binSearcher, epochs=epochs, binarySearchIterations=binarySearchIterations)
+    return resultIngOptimizerHolder[0]
+
+
+def optimizeHypeparamMomentum(lossObj, initPosList, keyattributeList):
+    # Setup loss object
+    #lossObj = QuadraticForm()  # Random positive definite QDF
+    #initPos = np.array([5.0, 4.0])
+
+    maxOptList = []
+    minOptList = []
+    for pos in initPosList:
+        maxOptList.append(momentum.Momentum(lossObject=lossObj, initPos=pos, learningRate=10, decayFactor=0.9))
+        minOptList.append(momentum.Momentum(lossObject=lossObj, initPos=pos, learningRate=0.001, decayFactor=0.9))
+    #optMaxAdam = adam.Adam(lossObject=lossObj, initPos=initPos, learningRate=1, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    #optMinAdam = adam.Adam(lossObject=lossObj, initPos=initPos, learningRate=0.001, forgettingFactorM=0.9, forgettingFactorR=0.999)
+
+    binSearcher = autoTuneBinSearcher(maxOptList=maxOptList, minOptList=minOptList)
+
+    #keyattributeList = ["lr"]
+
+
+    epochs = 25
+    binarySearchIterations = 100
+    cycle = 1  #Cycles not working entirely as intended yet
+    resultIngOptimizerHolder = [None]
+    # for i in range(cycle):
+    #     for atrStr in keyattributeList:
+    #         resultIngOptimizerHolder[0] = binSearcher.autoTuneBinarySearch(atrStr, nrEpochs=epochs, iterations=binarySearchIterations)
+
+    #print(resultIngOptimizerHolder[0].getHyperparamDict())
+
+
+    resultIngOptimizerHolder[0] = outerSearchLoop(keyattributeList=keyattributeList, binSearcher=binSearcher, epochs=epochs, binarySearchIterations=binarySearchIterations)
+    return resultIngOptimizerHolder[0]
+
+
+def optimizeHypeparamNesterov(lossObj, initPosList, keyattributeList):
+    # Setup loss object
+    #lossObj = QuadraticForm()  # Random positive definite QDF
+    #initPos = np.array([5.0, 4.0])
+
+    maxOptList = []
+    minOptList = []
+    for pos in initPosList:
+        maxOptList.append(nesterov.Nesterov(lossObj=lossObj, initPos=pos, lr=10, decayFactor=0.1))
+        minOptList.append(nesterov.Nesterov(lossObj=lossObj, initPos=pos, lr=0.001, decayFactor=0.1))
+    #optMaxAdam = adam.Adam(lossObject=lossObj, initPos=initPos, learningRate=1, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    #optMinAdam = adam.Adam(lossObject=lossObj, initPos=initPos, learningRate=0.001, forgettingFactorM=0.9, forgettingFactorR=0.999)
+
+    binSearcher = autoTuneBinSearcher(maxOptList=maxOptList, minOptList=minOptList)
+
+    #keyattributeList = ["lr"]
+
+
+    epochs = 25
+    binarySearchIterations = 100
+    cycle = 1  #Cycles not working entirely as intended yet
+    resultIngOptimizerHolder = [None]
+    # for i in range(cycle):
+    #     for atrStr in keyattributeList:
+    #         resultIngOptimizerHolder[0] = binSearcher.autoTuneBinarySearch(atrStr, nrEpochs=epochs, iterations=binarySearchIterations)
+
+    #print(resultIngOptimizerHolder[0].getHyperparamDict())
+
+
+    resultIngOptimizerHolder[0] = outerSearchLoop(keyattributeList=keyattributeList, binSearcher=binSearcher, epochs=epochs, binarySearchIterations=binarySearchIterations)
+    return resultIngOptimizerHolder[0]
+
+def optimizeHypeparamSGD(lossObj, initPosList, keyattributeList):
+    # Setup loss object
+    #lossObj = QuadraticForm()  # Random positive definite QDF
+    #initPos = np.array([5.0, 4.0])
+
+    maxOptList = []
+    minOptList = []
+    for pos in initPosList:
+        maxOptList.append(sgd.SGD(lossObj=lossObj, initPos=pos, lr=10))
+        minOptList.append(sgd.SGD(lossObj=lossObj, initPos=pos, lr=0.001))
+    #optMaxAdam = adam.Adam(lossObject=lossObj, initPos=initPos, learningRate=1, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    #optMinAdam = adam.Adam(lossObject=lossObj, initPos=initPos, learningRate=0.001, forgettingFactorM=0.9, forgettingFactorR=0.999)
+
+    binSearcher = autoTuneBinSearcher(maxOptList=maxOptList, minOptList=minOptList)
+
+    #keyattributeList = ["lr"]
+
+
+    epochs = 25
+    binarySearchIterations = 100
+    cycle = 1  #Cycles not working entirely as intended yet
+    resultIngOptimizerHolder = [None]
+    # for i in range(cycle):
+    #     for atrStr in keyattributeList:
+    #         resultIngOptimizerHolder[0] = binSearcher.autoTuneBinarySearch(atrStr, nrEpochs=epochs, iterations=binarySearchIterations)
+
+    #print(resultIngOptimizerHolder[0].getHyperparamDict())
+
+
+    resultIngOptimizerHolder[0] = outerSearchLoop(keyattributeList=keyattributeList, binSearcher=binSearcher, epochs=epochs, binarySearchIterations=binarySearchIterations)
     return resultIngOptimizerHolder[0]
 
 
 def main():
 
 
-    #Setup loss object
-    #lossObj = QuadraticForm()  # Random positive definite QDF
-    #initPosList = [np.array([5.0, 4.0])]
+    # Setup loss object
+    lossObj = QuadraticForm()  # Random positive definite QDF
+    initPosList = [np.array([5.0, 4.0])]
 
     # Logistic Regression
-    X, y = loadDataAsNumpyArray("datasets/australian_scale")
-    lossObj = LogisticRegression(data=[X,y])
-    initPosList = [np.random.uniform(-10, 10, lossObj.xDataLength) for _ in range(1)] # if the same position is wanted, set the seed using: np.random.seed(...)
+    # X, y = loadDataAsNumpyArray("datasets/australian_scale")
+    # lossObj = LogisticRegression(data=[X,y])
+    # initPosList = [np.random.uniform(-10, 10, lossObj.xDataLength) for _ in range(1)] # if the same position is wanted, set the seed using: np.random.seed(...)
 
     # Rosenbrock
     #lossObj = Rosenbrock(10)
