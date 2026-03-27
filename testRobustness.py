@@ -49,7 +49,7 @@ def main():
     optAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
 
     # Run the test
-    batchSizeTestValues = [256, 4, 8, 16, 32, 64, 128]
+    batchSizeTestValues = [1,]
     optimizerList = [optSGD, optNesterov, optMomentum, optAdam]
     results = testRobustness(optimizerList, batchSizeTestValues)
 
