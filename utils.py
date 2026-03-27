@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import 
 
 def plotPath(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
     # Create a grid of points
@@ -100,28 +99,28 @@ def train(optimizerList, lossObj=None, nrEpochs=100):
     return optimizerList
 
 
-def setupProblem(problemName):
+def setupProblem(problemName, dim = 2, datasetFilepath = "datasets/australian_scale"):
     """ Returns a loss object and an initial position
     Problems to choose from:
     - 'QDF' : Random, 2D, positive definite quadratic form
-    - 'Rosenbrock' : Rosenbrock of dimension 10 
+    - 'Rosenbrock' : Rosenbrock of dimension 'dim'
     - 'LogReg' : Logistic regression
     """
     # Only do imports when we get the actual problem
     if problemName == "QDF":
         from QuadraticForm import QuadraticForm
         lossObj = QuadraticForm()
-        initPos = np.array([0.1])
+        initPos = np.array([0.5, 0.5])
         return
     if problemName == "Rosenbrock":
         from Rosenbrock import Rosenbrock
-        lossObj = Rosenbrock(10)
-        initPos = np.array([0.1])
+        lossObj = Rosenbrock(dim)
+        initPos = np.random.uniform(-10, 10, dim)
         return
     if problemName == "LogReg":
         from LogisticRegression import LogisticRegression
         from DataLoader import loadDataAsNumpyArray
-        X, y = loadDataAsNumpyArray("datasets/australian")
+        X, y = loadDataAsNumpyArray(datasetFilepath)
         lossObj = LogisticRegression(data = [X,y])
         initPos = None
     else:
