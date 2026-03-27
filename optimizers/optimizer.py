@@ -1,13 +1,14 @@
 import numpy as np
 from optimizers.loss.loss import LossObj
+from copy import deepcopy
 
 class Optimizer:
     def __init__(self, lossObj: LossObj, initPos = np.array([])):
         # Store parameters/position and the lossObj
         self.lossObj = lossObj
 
-        self.initPos = initPos.copy()
-        self.pos = np.array(self.initPos, dtype=float)
+        self.initPos = np.array(deepcopy(initPos), dtype=float)
+        self.pos = np.array(deepcopy(initPos), dtype=float)
 
         self.lossHistory = []
         self.posHistory = []
@@ -56,7 +57,7 @@ class Optimizer:
         return
 
     def resetPosition(self):
-        self.pos = self.initPos
+        self.pos = deepcopy(self.initPos)
 
     def reset(self):
         pass
