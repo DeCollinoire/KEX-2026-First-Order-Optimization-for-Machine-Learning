@@ -6,8 +6,8 @@ class Optimizer:
         # Store parameters/position and the lossObj
         self.lossObj = lossObj
 
-        self.initPos = initPos
-        self.pos = np.array(initPos, dtype=float)
+        self.initPos = initPos.copy()
+        self.pos = np.array(self.initPos, dtype=float)
 
         self.lossHistory = []
         self.posHistory = []
