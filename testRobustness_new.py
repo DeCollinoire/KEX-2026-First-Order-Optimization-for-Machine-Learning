@@ -40,14 +40,14 @@ def testRobustness(listOfOptimizerListBatchVariants, batchSizeTestValues: List[i
     return results
 
 
-def setupOptimizerList(lossObjList):
+def setupOptimizerList(lossObjList, initPos):
 
 
     optBatchSizeList = []
     optAdamList = []
     optNesterov = []
     for lossobj in lossObjList:
-        privateAdam = adam.Adam(lossObject=lossobj, initPos=1, learningRate=10, forgettingFactorM=0.9, forgettingFactorR=0.999)
+        privateAdam = adam.Adam(lossObject=lossobj, initPos=initPos, learningRate=0.5, forgettingFactorM=0.9, forgettingFactorR=0.999)
         optAdamList.append(privateAdam) #(adam.Adam(lossObject=lossobj, initPos=1, learningRate=10, forgettingFactorM=0.9, forgettingFactorR=0.999))
 
         optBatchSizeList.append([privateAdam])
@@ -71,10 +71,12 @@ def main():
     lossObjList = []
     for batchSize in batchSizeTestValues:
         lossObjList.append(LogisticRegression(data=[X, y], batchSize=batchSize))
+    np.random.seed(10)
+    initPos = np.random.uniform(-10, 10, lossObjList[0].xDataLength)
 
 
     # Setup base case optimizers
-    organizedListVariantsOfOpt = setupOptimizerList(lossObjList=lossObjList)
+    organizedListVariantsOfOpt = setupOptimizerList(lossObjList=lossObjList, initPos=initPos)
     # optSGD = sgd.SGD(lossObj, initPos, lr=0.1)
     # optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.1, decayFactor=0.9)
     # optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.1, decayFactor=0.9)
