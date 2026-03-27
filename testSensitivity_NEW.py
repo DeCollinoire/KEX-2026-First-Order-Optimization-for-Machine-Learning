@@ -10,6 +10,7 @@ from utils import plotHistoryGraph, train
 from DataLoader import loadDataAsNumpyArray
 from LogisticRegression import LogisticRegression
 from Rosenbrock import Rosenbrock
+from utils import setupProblem
 
 def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict(), nrEpochs = 100):
     """"
@@ -56,17 +57,9 @@ def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict
 
 def main():
     # Setup loss object
-    # lossObj = QuadraticForm()   # Random positive definite QDF
-    # initPos = np.array([5.0, 4.0])
-
-    # Logistic Regression
-    X, y = loadDataAsNumpyArray("datasets/australian_scale")
-    lossObj = LogisticRegression(data=[X,y], batchSize=64)
-    initPos = np.random.uniform(-10, 10, lossObj.xDataLength) # if the same position is wanted, set the seed using: np.random.seed(...)
-
-    # Rosenbrock
-    lossObj = Rosenbrock(5)
-    initPos = np.array([1.5, 1.5])
+    lossObj, initPos = setupProblem("LogReg", datasetFilepath="datasets/australian_scaled")  # australian_scaled, australian, rcv1_train.binary
+    #lossObj, initPos = setupProblem("Rosenbrock", dim=10)
+    #lossObj, initPos = setupProblem("QDF")
 
     # Setup base case optimizers
     optSGD = sgd.SGD(lossObj, initPos, lr=0.1)
