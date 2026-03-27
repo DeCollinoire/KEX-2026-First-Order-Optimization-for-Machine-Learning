@@ -71,7 +71,7 @@ def plotPath_3d(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
 def plotHistoryGraph(history, title, label, ylabel, yscale="linear"):
     plt.plot(history, marker="o", label=label)
     plt.title(title)
-    plt.xlabel("Iteration")
+    plt.xlabel("Epochs")
     plt.ylabel(ylabel)
     plt.yscale(yscale)
     plt.legend()
@@ -84,14 +84,14 @@ def train(optimizerList, lossObj=None, nrEpochs=100):
     for epoch in range(1, nrEpochs + 1):
         # Shuffle batches
         lossObj.fillRandomBatchList()
+        
+        for index, optimizer in enumerate(optimizerList):
+            optimizer.posHistory.append(optimizer.pos.copy())
+            optimizer.lossHistory.append(lossObj.evaluate_loss(optimizer.pos))
 
         lossObj.currentBatchIndex = 0
         for batch in range(lossObj.numberOfBatches):
             for index, optimizer in enumerate(optimizerList):
-                # Store history first (to include the inital position)
-                optimizer.posHistory.append(optimizer.pos.copy())
-                optimizer.lossHistory.append(lossObj.evaluate_loss(optimizer.pos))
-
                 optimizer.step()
 
             # On to next batch for calculating gradient and so on
@@ -99,7 +99,7 @@ def train(optimizerList, lossObj=None, nrEpochs=100):
     return optimizerList
 
 
-def setupProblem(problemName):
+def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scaled"):
     """ Returns a loss object and an initial position
     Problems to choose from:
     - 'QDF' : Random, 2D, positive definite quadratic form
@@ -110,19 +110,17 @@ def setupProblem(problemName):
     if problemName == "QDF":
         from QuadraticForm import QuadraticForm
         lossObj = QuadraticForm()
-        initPos = np.array([0.1])
-        return
+        initPos = np.random.uniform(-10, 10, size=2)
     if problemName == "Rosenbrock":
         from Rosenbrock import Rosenbrock
-        lossObj = Rosenbrock(10)
-        initPos = np.array([0.1])
-        return
+        lossObj = Rosenbrock(dim)
+        initPos =  np.random.uniform(-10, 10, dim)
     if problemName == "LogReg":
         from LogisticRegression import LogisticRegression
         from DataLoader import loadDataAsNumpyArray
         X, y = loadDataAsNumpyArray("datasets/australian")
         lossObj = LogisticRegression(data = [X,y])
-        initPos = None
+        initPos = np.random.uniform(-10, 10, lossObj.xDataLength)
     else:
         raise NotImplementedError(f"The problem '{problemName}' is not implemented.")
     return lossObj, initPos

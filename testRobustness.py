@@ -14,7 +14,7 @@ from Rosenbrock import Rosenbrock
 from utils import plotHistoryGraph, train, setupProblem
 from DataLoader import loadDataAsNumpyArray
 
-def testRobustness(optimizerList: List[Optimizer], batchSizeTestValues):
+def testRobustness(optimizerList: List[Optimizer], batchSizeTestValues: List[int]):
     """
     To test robustness w.r.t. batch sizes, we test the (tuned) optimizers for each batch size. 
     """
@@ -25,8 +25,8 @@ def testRobustness(optimizerList: List[Optimizer], batchSizeTestValues):
     results = dict()
     for batchSize in batchSizeTestValues:
         # Reset all optimizer histories,  NOTE: For some reason, NOT resetting the history makes the histories reset correctly
-        #for optimizer in optimizerList:
-        #    optimizer.reset()
+        for optimizer in optimizerList:
+            optimizer.reset()
 
         # Train all optimizers in parallel, using the new batch size
         lossObj.batchSize = batchSize
@@ -49,7 +49,7 @@ def main():
     optAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
 
     # Run the test
-    batchSizeTestValues = [1, 4, 8, 16, 32, 64, 128, 256]
+    batchSizeTestValues = [256, 4, 8, 16, 32, 64, 128]
     optimizerList = [optSGD, optNesterov, optMomentum, optAdam]
     results = testRobustness(optimizerList, batchSizeTestValues)
 
@@ -58,11 +58,12 @@ def main():
     plt.figure()
     for batchSize, optimizerListCopies in results.items():
         # Plotting: Put all optimizers of the same batch size in the same plot 
-        plt.subplot(len(batchSizeTestValues)//2, 2, i+1)
+        plt.subplot(len(batchSizeTestValues)//2+1, 2, i+1)
+        plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.9)
         for optimizer in optimizerListCopies:
             plotHistoryGraph(optimizer.lossHistory, title = f"Loss for {optimizer.__class__.__name__}, batchSize = {batchSize}", label=f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", ylabel="Loss")
         i += 1
     plt.show()
 
-if __name__ == "__main__":    
+if __name__ == "__main__":
     main()
