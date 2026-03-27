@@ -35,7 +35,9 @@ class Momentum(opt.Optimizer):
 
 
     def reset(self):
+        # Reset history & position
         self.resetHistory()
-
+        self.resetPosition()
+        
         # Moment/velocity term
         self.moment = np.zeros_like(self.initPos)

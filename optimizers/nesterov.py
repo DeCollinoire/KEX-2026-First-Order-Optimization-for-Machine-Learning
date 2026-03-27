@@ -29,7 +29,9 @@ class Nesterov(Optimizer):
         return self.pos
 
     def reset(self):
+        # Reset history & position
         self.resetHistory()
-
+        self.resetPosition()
+        
         # Velocity vector
         self.velocity = np.zeros_like(self.initPos)

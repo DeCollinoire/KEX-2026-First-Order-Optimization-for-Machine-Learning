@@ -22,4 +22,6 @@ class SGD(Optimizer):
 
 
     def reset(self):
+        # Reset history & position
         self.resetHistory()
+        self.resetPosition()

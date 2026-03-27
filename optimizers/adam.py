@@ -13,10 +13,6 @@ class Adam(opt.Optimizer):
         """
         super().__init__(lossObject, initPos)
 
-        self.initPos = initPos
-
-        self.lossObj = lossObject
-
         self.learningRate = learningRate
         self.forgettingFactorM = forgettingFactorM
         self.forgettingFactorR = forgettingFactorR
@@ -64,6 +60,10 @@ class Adam(opt.Optimizer):
         return {"learningRate": self.learningRate, "forgettingFactorM": self.forgettingFactorM, "forgettingFactorR": self.forgettingFactorR}
 
     def reset(self):
+        # Reset history & position
+        self.resetHistory()
+        self.resetPosition()
+
         # Reset moments
         # Moment/velocity term
         self.moment = np.zeros_like(self.initPos)
@@ -75,9 +75,6 @@ class Adam(opt.Optimizer):
         # For the bias corrected term
         self.biasCorrectedRMSM = np.zeros_like(self.initPos)
 
-        # Reset history
-        self.posHistory = []
-        self.lossHistory = []
 
         self.iteration = 1
 

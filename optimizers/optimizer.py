@@ -5,6 +5,8 @@ class Optimizer:
     def __init__(self, lossObj: LossObj, initPos = np.array([])):
         # Store parameters/position and the lossObj
         self.lossObj = lossObj
+
+        self.initPos = initPos
         self.pos = np.array(initPos, dtype=float)
 
         self.lossHistory = []
@@ -52,6 +54,9 @@ class Optimizer:
         self.posHistory = []
         self.lossHistory = []
         return
+
+    def resetPosition(self):
+        self.pos = self.initPos
 
     def reset(self):
         pass
