@@ -21,6 +21,8 @@ class LossObj:
             self.X = np.array(self.data[0])
             self.y = np.array(self.data[1])
             self.xDataLength = len(self.X[0])
+            #Ska vara det nedan (för lossobj). Dock så har den ovan definitionen använts på andra ställer så överväg nytt namn på det här
+            #self.xDataLength = len(self.X)
 
             # Get the amount of data vectors (X,Y,...)
             self.amountOfDataVectors = len(self.data)
