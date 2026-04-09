@@ -1,4 +1,8 @@
-from optimizers import sgd, momentum, nesterov, adam
-import optimizers.loss.loss as lo
 
+
+import testRobustness
+import testSensitivity_NEW
+import testConvergence2
+
+""" Run all main tests in sequence """
 

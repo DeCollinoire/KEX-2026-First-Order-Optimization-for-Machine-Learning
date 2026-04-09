@@ -51,6 +51,12 @@ def testQdf():
         plt.subplot(2, 2, i+1)
         plotPath(qdf, posHistory, optimizer.__class__.__name__, center = expectedRoot, scale = 0.5)
 
+    plt.figure(1)
+    plt.savefig("images/QDF_Loss_Plot.png", dpi=300, bbox_inches = 'tight')
+
+    plt.figure(2)
+    plt.savefig("images/QDF_Path_Plot.png", dpi=300, bbox_inches = 'tight') # TODO: Need to adjust legends
+
     plt.show()
 
 if __name__ == "__main__":

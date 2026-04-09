@@ -6,6 +6,11 @@ from QuadraticForm import QuadraticForm
 from utils import plotHistoryGraph, train
 from copy import deepcopy
 
+"""
+DEPRECATED VERSION
+This version needs to add presentation, and potentially to improve the 'optimizerGroup' class.
+"""
+
 class optimizerGroup:
     def __init__(self, optimizerBaseCase: Optimizer):
         self.optimizerBaseCase = optimizerBaseCase

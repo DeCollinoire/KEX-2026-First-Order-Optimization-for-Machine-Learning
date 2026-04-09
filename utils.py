@@ -85,7 +85,7 @@ def train(optimizerList, lossObj=None, nrEpochs=100):
         # Shuffle batches
         lossObj.fillRandomBatchList()
 
-        # Save position
+        # Save position for each epoch
         for index, optimizer in enumerate(optimizerList):
             optimizer.savePosition()
 
@@ -99,13 +99,18 @@ def train(optimizerList, lossObj=None, nrEpochs=100):
     return optimizerList
 
 
-def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scaled"):
-    """ Returns a loss object and an initial position
+def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scaled", randomSeed=0):
+    """ 
+    Returns a loss object and an initial position
     Problems to choose from:
     - 'QDF' : Random, 2D, positive definite quadratic form
-    - 'Rosenbrock' : Rosenbrock of dimension 10 
-    - 'LogReg' : Logistic regression
+    - 'Rosenbrock' : Rosenbrock of dimension 'dim', by default dim=10. 'dim' is only used for the analytical minimum; (generalized) RB can use input of any length.
+    - 'LogReg' : Logistic regression on the chosen dataset at 'datasetFilepath'. Must use svmlib format for dataset.
+    The randomSeed is used to use the same random position each run.
     """
+    if randomSeed:
+        np.random.seed(randomSeed) # Set the seed internally of the function (optional)
+
     # Only do imports once we know the actual problem
     if problemName == "QDF":
         from QuadraticForm import QuadraticForm
@@ -118,7 +123,7 @@ def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scale
     if problemName == "LogReg":
         from LogisticRegression import LogisticRegression
         from DataLoader import loadDataAsNumpyArray
-        X, y = loadDataAsNumpyArray("datasets/australian")
+        X, y = loadDataAsNumpyArray(datasetFilepath)
         lossObj = LogisticRegression(data = [X,y])
         initPos = np.random.uniform(-10, 10, lossObj.xDataLength)
     else:

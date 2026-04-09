@@ -11,10 +11,15 @@ class LogisticRegression(LossObj):
         # return np.mean(np.logaddexp(0, -z))
         
         # Might be more stable if another log programming function is used.
-        x = np.array(self.data[0])
-        return (1/self.xDataLength) * np.sum(np.log(1 + np.exp(-self.data[1] * (x @ weights))))
+        X = self.X
+        return (1/self.xDataLength) * np.sum(np.log(1 + np.exp(-self.y * (X @ weights))))
 
     def evaluate_gradient(self, weights):
         X, y = self.getCurrentBatch()
         return -(X.T @ (y / (1 + np.exp(y * (X @ weights))))) / len(y)
 
+if __name__=='__main__':
+    from utils import setupProblem
+    lgr, initPos = setupProblem('LogReg')
+    lgr.evaluate_loss(initPos)
+    

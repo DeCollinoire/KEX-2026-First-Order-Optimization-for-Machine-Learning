@@ -69,30 +69,32 @@ def main():
 
     # Define an associated hyperparameter config dictionary if desired (missing values will be generated in the test)
     optimizerList = [
-        (optSGD, {"lr": [0.001, 0.01, 0.1]}),
+        (optSGD, {"lr": [0.001, 0.01, 0.1, 0.5, 1, 2]}),
         (optNesterov, dict()),
         (optMomentum, dict()),
-        (optAdam, dict({"learningRate": [0.01, 0.1, 0.78, 1]}))
+        (optAdam, {"learningRate": [0.01, 0.1, 0.78, 1]})
         ]
 
     # Run the test for each optimizer
     for opt, hConfig in optimizerList:
-        results = test_hyperparameter_sensitivity(opt, hyperparamConfig=hConfig, nrEpochs = 500)
+        print(f" --- {opt.__class__.__name__} --- ")
+        results = test_hyperparameter_sensitivity(opt, hyperparamConfig=hConfig, nrEpochs = 50)
 
         # Present
         # TODO: Print quantitative measurements
-        print(f" --- {opt.__class__.__name__} --- ")
         print("...")
 
         # Plotting
         i = 0
-        plt.figure()
+        plt.figure(str(opt.__class__.__name__+"_sensitivity_test"), figsize=(10, 6))
         for hyperparamName, optimizerList in results.items():
             # Plot all variations in the same graph, but each hyperparameter gets one subplot.
             plt.subplot(3, 1, i+1)
+            plt.subplots_adjust(right=0.8)
             for optVariation in optimizerList:
                 plotHistoryGraph(optVariation.lossHistory, title = f"Loss for {optVariation.__class__.__name__}, variation in '{hyperparamName}'", label=f"{optVariation.__class__.__name__}, {optVariation.getHyperparamStr()}", ylabel="Loss")
             i += 1
+        plt.savefig("images/"+opt.__class__.__name__+"_sensitivity_test.png", dpi=300, bbox_inches = 'tight')
         plt.show()
 
 if __name__ == "__main__":    

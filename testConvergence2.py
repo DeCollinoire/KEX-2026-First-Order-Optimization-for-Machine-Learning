@@ -10,6 +10,7 @@ from LogisticRegression import LogisticRegression
 
 # Dataloader
 from DataLoader import loadDataAsNumpyArray
+from utils import setupProblem
 
 # Plotting
 from utils import plotPath, plotHistoryGraph, plotPath_3d, train
@@ -104,12 +105,11 @@ def testConvergenceBatched(optimizerList, lossObj, nr_epochs = 100):
 
 def main():
     # Setup problem
-    X, y = loadDataAsNumpyArray("datasets/rcv1_train.binary") # rcv1_train.binary or australian_scale
-    lossObj = LogisticRegression(data=[X, y]) # QuadraticForm(), Rosenbrock()
+    datasetFilepath = "datasets/rcv1_train.binary" # rcv1_train.binary or australian_scale
+    lossObj, initPos = setupProblem("LogReg", datasetFilepath=datasetFilepath) # QDF, Rosenbrock; datasetFilepath is only needed for LogReg
 
     # Setup optimizers
     nrFeatures = lossObj.xDataLength
-    initPos = np.random.uniform(-10, 10, nrFeatures) # if the same position is wanted, set the seed using: np.random.seed(...)
 
     optSGD = sgd.SGD(lossObj, initPos, lr=0.1)
     optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.1, decayFactor=0.9)
@@ -118,18 +118,14 @@ def main():
     
     # Run the test
     optimizerList=[optSGD, optNesterov, optMomentum, optAdam]
-    testConvergenceBatched(optimizerList, lossObj, nr_epochs=25)
+    testConvergenceBatched(optimizerList, lossObj, nr_epochs=15)
 
     # Plotting & Presenting
-    plt.figure()
+    plt.figure(figsize=(12, 8))
     for optimizer in optimizerList:
-        plotHistoryGraph(optimizer.lossHistory, f"Loss history for {optimizer.__class__.__name__}", f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", "Loss")
+        plotHistoryGraph(optimizer.lossHistory, f"Loss history ({lossObj.__class__.__name__})", f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", "Loss")    
+    plt.savefig("images/all_optimizers_convergence_test.png", dpi=300, bbox_inches = 'tight')
     plt.show()
-
-    plt.figure()
-    for optimizer in optimizerList:
-        plotHistoryGraph(optimizer.lossHistory, f"Loss history for {optimizer.__class__.__name__}", f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", "Loss")
-    plt.show()    
 
 if __name__ == "__main__":
     main()
