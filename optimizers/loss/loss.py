@@ -3,6 +3,8 @@ import random
 import numpy as np
 import math
 
+from timeit import default_timer
+
 def get_batches(data, batch_size=50):
     return [data[start:start + batch_size] for start in range(0, len(data), batch_size)]
 
@@ -13,6 +15,8 @@ class LossObj:
         self.amountOfDataVectors = 1
         self.currentBatchIndex = 0
 
+        # Test for optimization (making it run faster). Pre allocation.
+        self.idx = 0
 
         # Get the length of the indata. The other data should be of similar length.
         self.xDataListLength = 1
@@ -89,6 +93,7 @@ class LossObj:
     #
 
     def fillRandomBatchList(self):
+        #startTime = default_timer()
         if len(self.data) > 0:
             self.randomIndexList = np.random.permutation(self.xDataListLength)
 
@@ -98,14 +103,17 @@ class LossObj:
 
             # Fills the randomBatchList with batches from the shuffled data
             # 'i' will increase by batchsize each iteration and 'idx' will increase by 1 each time in the same iteration.
-            idx = 0
+            self.idx = 0
             for i in range(0, self.xDataListLength, self.batchSize):
                 for j in range(self.amountOfDataVectors):
-                    self.randomBatchList[idx][j] = self.shuffledData[j][i: i + self.batchSize]
-                idx = idx + 1
+                    self.randomBatchList[self.idx][j] = self.shuffledData[j][i: i + self.batchSize]
+                self.idx = self.idx + 1
 
             self.currentBatchIndex = 0
+        #endTime = default_timer()
+        #print("fillrandombatchlist time taken less than: " + str(endTime - startTime))
         return
+
 
 #Test
 if __name__ == "__main__":
