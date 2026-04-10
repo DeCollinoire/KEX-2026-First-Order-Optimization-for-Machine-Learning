@@ -25,12 +25,12 @@ def testRobustness(optimizerList: List[Optimizer], batchSizeTestValues: List[int
     results = dict()
     for batchSize in batchSizeTestValues:
         print(f"Testing batchSize = {batchSize}")
-        # Reset all optimizer histories,  NOTE: For some reason, NOT resetting the history makes the histories reset correctly
+        # Reset all optimizer histories
         for optimizer in optimizerList:
             optimizer.reset()
 
         # Train all optimizers in parallel, using the new batch size
-        lossObj.batchSize = batchSize
+        lossObj.setBatchSize(batchSize)
         train(optimizerList, nrEpochs=nrEpochs)
 
         # Save results as a copy of each optimizer
@@ -42,18 +42,20 @@ def testRobustness(optimizerList: List[Optimizer], batchSizeTestValues: List[int
                 results[optName].append(deepcopy(optimizer))         
     return results
 
+
+
 def main():
-    #np.random.seed(10)
-    lossObj, initPos = setupProblem("LogReg", datasetFilepath="datasets/australian_scaled")  # australian_scaled, australian, rcv1_train.binary
+    lossObj, initPos = setupProblem("LogReg", datasetFilepath="datasets/australian_scaled", randomSeed=10)  # australian_scaled, australian, rcv1_train.binary
+    print(initPos)
 
     # Setup base case optimizers
     optSGD = sgd.SGD(lossObj, initPos, lr=0.1)
     optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.1, decayFactor=0.9)
     optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.1, decayFactor=0.9)
-    optAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    optAdam = adam.Adam(lossObj, initPos, learningRate=0.5, forgettingFactorM=0.9, forgettingFactorR=0.999)
 
     # Run the test
-    batchSizeTestValues = [1, 16, 32, 64, 256, lossObj.xDataListLength] # lossObj.xDataListLength for full batch
+    batchSizeTestValues = [1, 32, 128, 256] # lossObj.xDataListLength for full batch
     optimizerList = [optSGD, optNesterov, optMomentum, optAdam]
     results = testRobustness(optimizerList, batchSizeTestValues, nrEpochs=10)
 

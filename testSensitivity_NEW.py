@@ -95,7 +95,7 @@ def main():
                 plotHistoryGraph(optVariation.lossHistory, title = f"Loss for {optVariation.__class__.__name__}, variation in '{hyperparamName}'", label=f"{optVariation.__class__.__name__}, {optVariation.getHyperparamStr()}", ylabel="Loss")
             i += 1
         plt.savefig("images/"+opt.__class__.__name__+"_sensitivity_test.png", dpi=300, bbox_inches = 'tight')
-        plt.show()
+    plt.show()
 
-if __name__ == "__main__":    
+if __name__ == "__main__": 
     main()
