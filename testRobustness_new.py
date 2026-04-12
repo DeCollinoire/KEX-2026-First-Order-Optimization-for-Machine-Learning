@@ -34,7 +34,7 @@ def setupOptimizerList(lossObjList, initPos):
     groupedByBatches = [] # for training
     for lossobj in lossObjList:
         privateSGD = sgd.SGD(lossobj, initPos, lr=0.1)
-        privateAdam = adam.Adam(lossObject=lossobj, initPos=initPos, learningRate=0.5, forgettingFactorM=0.9, forgettingFactorR=0.999)
+        privateAdam = adam.Adam(lossObject=lossobj, initPos=initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
         
         optSGDList.append(privateSGD)
         optAdamList.append(privateAdam)
@@ -58,7 +58,7 @@ def main():
 
     # Setup base case optimizers
     np.random.seed(10)
-    initPos = np.random.uniform(-10, 10, lossObjList[0].xDataLength)
+    initPos = np.random.uniform(-0.1, 0.1, lossObjList[0].xDataLength)
     groupedByOptimizer, groupedByBatches, _ = setupOptimizerList(lossObjList=lossObjList, initPos=initPos)
 
     # Run the test
