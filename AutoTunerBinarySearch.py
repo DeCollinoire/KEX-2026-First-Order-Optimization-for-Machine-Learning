@@ -10,6 +10,7 @@ from utils import plotHistoryGraph, train
 #from DataLoader import loadDataAsNumpyArray
 from LogisticRegression import LogisticRegression
 from Rosenbrock import Rosenbrock
+from DataLoader import loadDataAsNumpyArray
 
 class autoTuneBinSearcher:
     def __init__(self, maxOptList, minOptList): # maxOpt: Optimizer, minOpt: Optimizer, maxOptList = None, minOptList = None):
@@ -259,13 +260,13 @@ def main():
 
 
     # Setup loss object
-    lossObj = QuadraticForm()  # Random positive definite QDF
-    initPosList = [np.array([5.0, 4.0])]
+    # lossObj = QuadraticForm()  # Random positive definite QDF
+    # initPosList = [np.array([5.0, 4.0])]
 
     # Logistic Regression
-    # X, y = loadDataAsNumpyArray("datasets/australian_scale")
-    # lossObj = LogisticRegression(data=[X,y])
-    # initPosList = [np.random.uniform(-10, 10, lossObj.xDataLength) for _ in range(1)] # if the same position is wanted, set the seed using: np.random.seed(...)
+    X, y = loadDataAsNumpyArray("datasets/australian_scale")
+    lossObj = LogisticRegression(data=[X,y])
+    initPosList = [np.random.uniform(-10, 10, lossObj.xDataLength) for _ in range(1)] # if the same position is wanted, set the seed using: np.random.seed(...)
 
     # Rosenbrock
     #lossObj = Rosenbrock(10)
