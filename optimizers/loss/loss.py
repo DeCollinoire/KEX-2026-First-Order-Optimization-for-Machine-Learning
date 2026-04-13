@@ -25,7 +25,7 @@ class LossObj:
             # Pre-split the data (for calculating loss over the entire dataset)
             self.X = np.array(self.data[0])
             self.y = np.array(self.data[1])
-            self.xDataLength = len(self.X[0])
+            self.xDataLength = self.X.shape[0] #len(self.X[0])
             #Ska vara det nedan (för lossobj). Dock så har den ovan definitionen använts på andra ställer så överväg nytt namn på det här
             #self.xDataLength = len(self.X)
             #Nytt variabelnamn för den initiella meningen
