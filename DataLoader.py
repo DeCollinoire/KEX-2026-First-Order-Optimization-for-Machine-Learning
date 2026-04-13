@@ -62,5 +62,5 @@ if __name__=="__main__":
     # Test loadDataAsNumpyArray
     X, y = loadDataAsNumpyArray("datasets/australian_scale") # type: ignore - VS Code says it expects 3 values but running says 'expects 2 values'    
 
-    print(X[:10])
+    print(X[:10]) # type: ignore
     print(y[:10])
