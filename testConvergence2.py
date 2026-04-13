@@ -106,15 +106,17 @@ def testConvergenceBatched(optimizerList, lossObj, nr_epochs = 100):
 def main():
     # Setup problem
     datasetFilepath = "datasets/rcv1_train.binary" # rcv1_train.binary or australian_scale
-    lossObj, initPos = setupProblem("LogReg", datasetFilepath=datasetFilepath) # QDF, Rosenbrock; datasetFilepath is only needed for LogReg
+    print("Set up problem: Begun")
+    lossObj, initPos = setupProblem("LogReg", datasetFilepath=datasetFilepath, initialPosInterval=1, randomSeed=10) # QDF, Rosenbrock; datasetFilepath is only needed for LogReg
+    print("Set up problem: Finished")
 
     # Setup optimizers
     nrFeatures = lossObj.xDataLength
 
-    optSGD = sgd.SGD(lossObj, initPos, lr=0.1)
-    optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.1, decayFactor=0.9)
-    optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.1, decayFactor=0.9)
-    optAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    optSGD = sgd.SGD(lossObj, initPos, lr=0.01)
+    optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.01, decayFactor=0.9)
+    optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.01, decayFactor=0.9)
+    optAdam = adam.Adam(lossObj, initPos, learningRate=0.01, forgettingFactorM=0.9, forgettingFactorR=0.999)
     
     # Run the test
     optimizerList=[optSGD, optNesterov, optMomentum, optAdam]
