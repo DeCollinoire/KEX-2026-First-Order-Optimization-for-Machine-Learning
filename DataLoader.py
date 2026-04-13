@@ -3,7 +3,7 @@ from sklearn.datasets import load_svmlight_file
 from scipy.sparse import csr_matrix
 
 def loadDataAsNumpyArray(filepath):
-    X, y = load_svmlight_file("datasets/australian_scale") # type: ignore - VS Code says it expects 3 values but running says 'expects 2 values'
+    X, y = load_svmlight_file(filepath) # type: ignore - VS Code says it expects 3 values but running says 'expects 2 values'
     X = X.todense()
     y = np.array(y)
     return X, y
