@@ -1,5 +1,6 @@
 import numpy as np
 from optimizers.loss.loss import LossObj
+from scipy.special import expit
 
 class LogisticRegression(LossObj):
     def __init__(self, data, batchSize = 1):
@@ -16,6 +17,8 @@ class LogisticRegression(LossObj):
     def evaluate_gradient(self, weights):
         X, y = self.getCurrentBatch()
         return -(X.T @ (y / (1 + np.exp(y * (X @ weights))))) / len(y)
+        # z = y * (X @ weights)
+        # return -(X.T @ (y * expit(-z))) / len(y)
 
 if __name__=='__main__':
     from utils import setupProblem
