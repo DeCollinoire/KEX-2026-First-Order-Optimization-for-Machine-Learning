@@ -78,16 +78,19 @@ def plotHistoryGraph(history, title, label, ylabel, yscale="linear"):
     plt.grid()
 
 def train(optimizerList, lossObj=None, nrEpochs=100):
+    for opt in optimizerList:
+        opt.preAllocateHistory(nrEpochs)
+
     if lossObj is None:
         lossObj = optimizerList[0].lossObj
     # Start testing
-    for epoch in range(1, nrEpochs + 1):
+    for epoch in range(0, nrEpochs):
         # Shuffle batches
         lossObj.fillRandomBatchList()
 
         # Save position for each epoch
         for index, optimizer in enumerate(optimizerList):
-            optimizer.savePosition()
+            optimizer.savePosition(epoch)
 
         lossObj.currentBatchIndex = 0
         for batch in range(lossObj.numberOfBatches):

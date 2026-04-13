@@ -37,10 +37,16 @@ class Optimizer:
 
         return np.array(self.posHistory), np.array(self.lossHistory)
 
-    def savePosition(self):
+    def savePosition(self, historyIndex=None):
+
         currentPos = self.pos.copy()
-        self.posHistory.append(currentPos)
-        self.lossHistory.append(self.lossObj.evaluate_loss(currentPos))
+        if historyIndex is None:
+            #currentPos = self.pos.copy()
+            self.posHistory.append(currentPos)
+            self.lossHistory.append(self.lossObj.evaluate_loss(currentPos))
+        else:
+            self.posHistory[historyIndex] =currentPos
+            self.lossHistory[historyIndex] = self.lossObj.evaluate_loss(currentPos)
 
     def getHyperparamStr(self):
         return ""
@@ -61,3 +67,7 @@ class Optimizer:
 
     def reset(self):
         pass
+
+    def preAllocateHistory(self, amountOfSteps):
+        self.posHistory = [0 for _ in range(amountOfSteps)]
+        self.lossHistory = [0 for _ in range(amountOfSteps)]
