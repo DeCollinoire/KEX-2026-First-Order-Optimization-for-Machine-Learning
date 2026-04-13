@@ -50,7 +50,7 @@ def setupOptimizerList(lossObjList, initPos):
 
 def main():
     # Setup lossObj
-    X, y = loadDataAsNumpyArray("datasets/rcv1_train.binary")  # rcv1_train.binary or australian_scale
+    X, y = loadDataAsNumpyArray("datasets/australian_scale")  # rcv1_train.binary or australian_scale
     batchSizeTestValues = [1, 32, 128, 256]
     lossObjList = []
     for batchSize in batchSizeTestValues:

@@ -119,11 +119,11 @@ def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scale
         from QuadraticForm import QuadraticForm
         lossObj = QuadraticForm()
         initPos = np.random.uniform(-initialPosInterval, initialPosInterval, size=2)
-    if problemName == "Rosenbrock":
+    elif problemName == "Rosenbrock":
         from Rosenbrock import Rosenbrock
         lossObj = Rosenbrock(dim)
         initPos =  np.random.uniform(-initialPosInterval, initialPosInterval, dim)
-    if problemName == "LogReg":
+    elif problemName == "LogReg":
         from LogisticRegression import LogisticRegression
         from DataLoader import loadDataAsNumpyArray
         X, y = loadDataAsNumpyArray(datasetFilepath)

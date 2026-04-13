@@ -57,7 +57,7 @@ def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict
 
 def main():
     # Setup loss object
-    lossObj, initPos = setupProblem("LogReg", datasetFilepath="datasets/australian_scaled")  # australian_scaled, australian, rcv1_train.binary
+    lossObj, initPos = setupProblem("LogReg", datasetFilepath="datasets/australian_scale", randomSeed=10)  # australian_scale, australian, rcv1_train.binary
     #lossObj, initPos = setupProblem("Rosenbrock", dim=10)
     #lossObj, initPos = setupProblem("QDF")
 

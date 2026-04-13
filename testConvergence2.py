@@ -107,27 +107,37 @@ def main():
     # Setup problem
     datasetFilepath = "datasets/rcv1_train.binary" # rcv1_train.binary or australian_scale
     print("Set up problem: Begun")
-    lossObj, initPos = setupProblem("LogReg", datasetFilepath=datasetFilepath, initialPosInterval=1, randomSeed=10) # QDF, Rosenbrock; datasetFilepath is only needed for LogReg
+    problemName = "Rosenbrock"
+    lossObj, initPos = setupProblem(problemName=problemName,dim=2, datasetFilepath=datasetFilepath, initialPosInterval=1, randomSeed=10) # QDF, Rosenbrock; datasetFilepath is only needed for LogReg
     print("Set up problem: Finished")
+    print("initpos" + str(initPos))
 
     # Setup optimizers
     nrFeatures = lossObj.xDataLength
 
-    optSGD = sgd.SGD(lossObj, initPos, lr=0.01)
-    optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.01, decayFactor=0.9)
-    optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.01, decayFactor=0.9)
-    optAdam = adam.Adam(lossObj, initPos, learningRate=0.01, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    optSGD = sgd.SGD(lossObj, initPos, lr=0.001)
+    optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.0001, decayFactor=0.9)
+    optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.001, decayFactor=0.5)
+    optAdam = adam.Adam(lossObj, initPos, learningRate=0.05, forgettingFactorM=0.9, forgettingFactorR=0.999)
     
     # Run the test
     optimizerList=[optSGD, optNesterov, optMomentum, optAdam]
-    testConvergenceBatched(optimizerList, lossObj, nr_epochs=15)
+    testConvergenceBatched(optimizerList, lossObj, nr_epochs=100)
 
     # Plotting & Presenting
     plt.figure(figsize=(12, 8))
     for optimizer in optimizerList:
-        plotHistoryGraph(optimizer.lossHistory, f"Loss history ({lossObj.__class__.__name__})", f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", "Loss")    
+        plotHistoryGraph(optimizer.lossHistory, f"Loss history ({lossObj.__class__.__name__})", f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}, finalPos = {optimizer.pos}", "Loss")
     plt.savefig("images/all_optimizers_convergence_test.png", dpi=300, bbox_inches = 'tight')
     plt.show()
 
+    if problemName=="Rosenbrock":
+        plt.figure(figsize=(12, 8))
+        for i, optimizer in enumerate(optimizerList):
+            plt.subplot(2,2, i+1)
+            plotPath(optimizer.lossObj, optimizer.posHistory, f"Loss history ({optimizer.__class__.__name__})")
+        #plt.savefig("images/all_optimizers_convergence_test.png", dpi=300, bbox_inches='tight')
+        #plt.show()
+    plt.show()
 if __name__ == "__main__":
     main()
