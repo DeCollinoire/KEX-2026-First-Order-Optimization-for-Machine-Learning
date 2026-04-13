@@ -99,7 +99,7 @@ def train(optimizerList, lossObj=None, nrEpochs=100):
     return optimizerList
 
 
-def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scaled", randomSeed=0):
+def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scaled", randomSeed=0, initialPosInterval=0.1):
     """ 
     Returns a loss object and an initial position
     Problems to choose from:
@@ -115,17 +115,17 @@ def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scale
     if problemName == "QDF":
         from QuadraticForm import QuadraticForm
         lossObj = QuadraticForm()
-        initPos = np.random.uniform(-10, 10, size=2)
+        initPos = np.random.uniform(-initialPosInterval, initialPosInterval, size=2)
     if problemName == "Rosenbrock":
         from Rosenbrock import Rosenbrock
         lossObj = Rosenbrock(dim)
-        initPos =  np.random.uniform(-10, 10, dim)
+        initPos =  np.random.uniform(-initialPosInterval, initialPosInterval, dim)
     if problemName == "LogReg":
         from LogisticRegression import LogisticRegression
         from DataLoader import loadDataAsNumpyArray
         X, y = loadDataAsNumpyArray(datasetFilepath)
         lossObj = LogisticRegression(data = [X,y])
-        initPos = np.random.uniform(-10, 10, lossObj.xDataLength)
+        initPos = np.random.uniform(-initialPosInterval, initialPosInterval, lossObj.xDataLength)
     else:
         raise NotImplementedError(f"The problem '{problemName}' is not implemented.")
     return lossObj, initPos
