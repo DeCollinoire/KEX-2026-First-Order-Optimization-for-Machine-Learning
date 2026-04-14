@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from copy import deepcopy
 from typing import List
+from math import ceil
 
 # Project files
 from optimizers.optimizer import Optimizer
@@ -30,7 +31,9 @@ def testRobustness(optimizerList: List[Optimizer], batchSizeTestValues: List[int
             optimizer.reset()
 
         # Train all optimizers in parallel, using the new batch size
-        lossObj.setBatchSize(batchSize)
+        lossObj.batchSize = batchSize
+        lossObj.numberOfBatches = ceil(lossObj.xDataListLength / lossObj.batchSize)
+        lossObj.randomBatchList = [[[None] for _1 in range (lossObj.amountOfDataVectors)] for _ in range(lossObj.numberOfBatches)] #Allocate memory
         train(optimizerList, nrEpochs=nrEpochs)
 
         # Save results as a copy of each optimizer
@@ -45,7 +48,7 @@ def testRobustness(optimizerList: List[Optimizer], batchSizeTestValues: List[int
 
 
 def main():
-    lossObj, initPos = setupProblem("LogReg", datasetFilepath="datasets/australian_scaled", randomSeed=10)  # australian_scaled, australian, rcv1_train.binary
+    lossObj, initPos = setupProblem("LogReg", datasetFilepath="datasets/rcv1_train.binary", randomSeed=10)  # australian_scaled, australian, rcv1_train.binary
     print(initPos)
 
     # Setup base case optimizers

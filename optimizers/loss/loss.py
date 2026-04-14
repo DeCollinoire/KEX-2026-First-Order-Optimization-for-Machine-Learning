@@ -22,20 +22,15 @@ class LossObj:
         self.xDataListLength = 1
         self.xDataLength = 1
         if len(self.data) > 0:
-            # Pre-split the data (for calculating loss over the entire dataset)
-            self.X = np.array(self.data[0])
-            self.y = np.array(self.data[1])
-            self.xDataLength = self.X.shape[0] #len(self.X[0])
-            #Ska vara det nedan (för lossobj). Dock så har den ovan definitionen använts på andra ställer så överväg nytt namn på det här
-            #self.xDataLength = len(self.X)
-            #Nytt variabelnamn för den initiella meningen
-            self.xDataListLength = len(self.X)
-
+            # Pre-split the data (for easily calculating loss over the entire dataset)
+            self.X = self.data[0]
+            self.y = self.data[1]
+            self.xDataLength = self.X.shape[1] #len(self.X[0])
+            self.xDataListLength = self.X.shape[0]
 
             # Get the amount of data vectors (X,Y,...)
             self.amountOfDataVectors = len(self.data)
 
-        #self.numberOfBatches = math.ceil(self.xDataLength / self.batchSize) #Gammal
         self.numberOfBatches = math.ceil(self.xDataListLength / self.batchSize)
 
         self.shuffledData = data # self.data.copy()
@@ -69,28 +64,7 @@ class LossObj:
         batch = self.randomBatchList[self.currentBatchIndex]
         X = batch[0] # first element vector is X
         y = batch[1] # second element vector is y
-        return np.array(X), np.array(y)
-
-#Gammal
-    # def fillRandomBatchList(self):
-    #     if len(self.data) > 0:
-    #         self.randomIndexList = np.random.permutation(self.xDataLength)
-    #
-    #         # Shuffles the data in each data vector but keeps related values in appropriate places
-    #         for i in range(self.amountOfDataVectors):
-    #             self.shuffledData[i] = self.data[i][self.randomIndexList]
-    #
-    #         # Fills the randomBatchList with batches from the shuffled data
-    #         # 'i' will increase by batchsize each iteration and 'idx' will increase by 1 each time in the same iteration.
-    #         idx = 0
-    #         for i in range(0, self.xDataLength, self.batchSize):
-    #             for j in range(self.amountOfDataVectors):
-    #                 self.randomBatchList[idx][j] = self.shuffledData[j][i: i + self.batchSize]
-    #             idx = idx + 1
-    #
-    #         self.currentBatchIndex = 0
-    #     return
-    #
+        return X, y
 
     def fillRandomBatchList(self):
         #startTime = default_timer()
@@ -113,7 +87,6 @@ class LossObj:
         #endTime = default_timer()
         #print("fillrandombatchlist time taken less than: " + str(endTime - startTime))
         return
-
 
 #Test
 if __name__ == "__main__":
