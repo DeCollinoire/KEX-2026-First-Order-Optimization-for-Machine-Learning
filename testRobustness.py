@@ -31,9 +31,7 @@ def testRobustness(optimizerList: List[Optimizer], batchSizeTestValues: List[int
             optimizer.reset()
 
         # Train all optimizers in parallel, using the new batch size
-        lossObj.batchSize = batchSize
-        lossObj.numberOfBatches = ceil(lossObj.xDataListLength / lossObj.batchSize)
-        lossObj.randomBatchList = [[[None] for _1 in range (lossObj.amountOfDataVectors)] for _ in range(lossObj.numberOfBatches)] #Allocate memory
+        lossObj.setBatchSize(batchSize)
         train(optimizerList, nrEpochs=nrEpochs)
 
         # Save results as a copy of each optimizer
