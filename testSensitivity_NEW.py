@@ -57,9 +57,15 @@ def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict
 
 def main():
     # Setup loss object
-    lossObj, initPos = setupProblem("LogReg", datasetFilepath="datasets/australian_scale", randomSeed=10)  # australian_scale, australian, rcv1_train.binary
+    print("Setting up...")
+    lossObj, initPos = setupProblem("LogReg", 
+                                    datasetFilepath = "datasets/rcv1_train.binary", 
+                                    randomSeed = 10, 
+                                    batchSize = 1000,
+                                    toDense = False)  # australian_scale, australian, rcv1_train.binary
     #lossObj, initPos = setupProblem("Rosenbrock", dim=10)
     #lossObj, initPos = setupProblem("QDF")
+    print(f"Data loaded and lossObj created")
 
     # Setup base case optimizers
     optSGD = sgd.SGD(lossObj, initPos, lr=0.1)
@@ -74,15 +80,16 @@ def main():
         (optMomentum, dict()),
         (optAdam, {"learningRate": [0.01, 0.1, 0.78, 1]})
         ]
+    print("Optimizers created")
 
     # Run the test for each optimizer
     for opt, hConfig in optimizerList:
-        print(f" --- {opt.__class__.__name__} --- ")
+        print(f"\n --- Testing {opt.__class__.__name__} --- ")
         results = test_hyperparameter_sensitivity(opt, hyperparamConfig=hConfig, nrEpochs = 50)
 
         # Present
         # TODO: Print quantitative measurements
-        print("...")
+        print("Testing finished!")
 
         # Plotting
         i = 0
@@ -92,7 +99,7 @@ def main():
             plt.subplot(3, 1, i+1)
             plt.subplots_adjust(right=0.8)
             for optVariation in optimizerList:
-                plotHistoryGraph(optVariation.lossHistory, title = f"Loss for {optVariation.__class__.__name__}, variation in '{hyperparamName}'", label=f"{optVariation.__class__.__name__}, {optVariation.getHyperparamStr()}", ylabel="Loss")
+                plotHistoryGraph(optVariation.lossHistory, title = f"Loss for {optVariation.__class__.__name__}, variation in '{hyperparamName}', lossObj = {optVariation.lossObj.__class__.__name__}", label=f"{optVariation.__class__.__name__}, {optVariation.getHyperparamStr()}", ylabel="Loss")
             i += 1
         plt.savefig("images/"+opt.__class__.__name__+"_sensitivity_test.png", dpi=300, bbox_inches = 'tight')
     plt.show()

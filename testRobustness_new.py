@@ -14,66 +14,77 @@ from Rosenbrock import Rosenbrock
 from utils import plotHistoryGraph, train, setupProblem
 from DataLoader import loadDataAsNumpyArray
 
-def testRobustness(listOfOptimizerListBatchVariants, batchSizeTestValues: List[int]):
+def testRobustness(groupedByBatches):
     """
     To test robustness w.r.t. batch sizes, we test the (tuned) optimizers for each batch size. 
     """
-    results = dict()
-    for batchVariant in listOfOptimizerListBatchVariants:
+    for batchVariant in groupedByBatches:
+        print("Testing for batch size: ", batchVariant[0].lossObj.batchSize)
         train(batchVariant)
-        results[batchVariant[0].lossObj.batchSize] = batchVariant
-    return results
-
 
 def setupOptimizerList(lossObjList, initPos):
-    optAdamList = []
     optSGDList = []
-    listOfAllOpt = []
+    optMomentumList = []
+    optNesterovList = []
+    optAdamList = []
+    groupedByOptimizer = [] # for presenting grouped by optimizer
+    groupedByBatches = [] # for training grouped by batch size
 
-    groupedByOptimizer = [] # for presenting
-    groupedByBatches = [] # for training
-    for lossobj in lossObjList:
-        privateSGD = sgd.SGD(lossobj, initPos, lr=0.1)
-        privateAdam = adam.Adam(lossObject=lossobj, initPos=initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    # Create lossObjects
+    for lossObj in lossObjList:
+        privateSGD = sgd.SGD(lossObj, initPos, lr=0.1)
+        privateMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.1, decayFactor=0.9)
+        privateNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.1, decayFactor=0.9)
+        privateAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
         
         optSGDList.append(privateSGD)
+        optMomentumList.append(privateMomentum)
+        optNesterovList.append(privateNesterov)
         optAdamList.append(privateAdam)
         
         # All optimizers of same batch size
-        groupedByBatches.append([privateSGD, privateAdam])
+        groupedByBatches.append([privateSGD, privateMomentum, privateNesterov, privateAdam])
 
     # All optimizers of same size
-    groupedByOptimizer.append([optSGDList, optAdamList])
-    listOfAllOpt.extend(optSGDList)
-    listOfAllOpt.extend(optAdamList)
-    return groupedByOptimizer, groupedByBatches, listOfAllOpt
+    groupedByOptimizer.extend([optSGDList, optMomentumList, optNesterovList, optAdamList])
+
+    return groupedByOptimizer, groupedByBatches
 
 def main():
     # Setup lossObj
-    X, y = loadDataAsNumpyArray("datasets/australian_scale")  # rcv1_train.binary or australian_scale
-    batchSizeTestValues = [1, 32, 128, 256]
+    # Load using loadDataAsNumpyArray, because the setupProblem returns lossObj
+    X, y = loadDataAsNumpyArray("datasets/rcv1_train.binary", toDense=False)  # rcv1_train.binary or australian_scale. X and y are sparse matrices, but will be converted to dense in the setupProblem function if 'toDense = True' is set.
+
+    # Batch size values to test, relative to number of samples
+    nrOfSamples = X.shape[0]
+    batchSizeTestValues = [round(factor*nrOfSamples) for factor in [0.1, 0.25, 0.5, 1.0]]
+    
+    # Create lossObj
     lossObjList = []
     for batchSize in batchSizeTestValues:
         lossObjList.append(LogisticRegression(data=[X, y], batchSize=batchSize))
+    print("Loss objects set up for batch sizes: ", batchSizeTestValues)
 
     # Setup base case optimizers
     np.random.seed(10)
     initPos = np.random.uniform(-0.1, 0.1, lossObjList[0].xDataLength)
-    groupedByOptimizer, groupedByBatches, _ = setupOptimizerList(lossObjList=lossObjList, initPos=initPos)
+    groupedByOptimizer, groupedByBatches = setupOptimizerList(lossObjList=lossObjList, initPos=initPos)
+    print("Optimizers set up.")
 
     # Run the test
-    results = testRobustness(groupedByBatches, batchSizeTestValues)
+    print("Starting robustness test...")
+    testRobustness(groupedByBatches)
+    print("Robustness test completed.")
 
     # Present
-    # TODO: Change to plot by optimizer variant
     i = 0
     plt.figure()
-    for batchSize, optimizerListCopies in results.items():
+    for optimizerList in groupedByOptimizer:
         # Plotting: Put all optimizers of the same batch size in the same plot 
         plt.subplot(len(batchSizeTestValues)//2+1, 2, i+1)
         plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.9)
-        for optimizer in optimizerListCopies:
-            plotHistoryGraph(optimizer.lossHistory, title = f"Loss history, batchSize = {batchSize}", label=f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", ylabel="Loss")
+        for optimizer in optimizerList:
+            plotHistoryGraph(optimizer.lossHistory, title = f"Loss history", label=f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}, batchSize = {optimizer.lossObj.batchSize}", ylabel="Loss")
         i += 1
     plt.show()
 

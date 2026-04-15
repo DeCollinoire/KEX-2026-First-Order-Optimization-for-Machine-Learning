@@ -45,8 +45,10 @@ def testRobustness(optimizerList: List[Optimizer], batchSizeTestValues: List[int
 
 
 def main():
-    lossObj, initPos = setupProblem("LogReg", datasetFilepath="datasets/australian_scaled", randomSeed=10)  # australian_scaled, australian, rcv1_train.binary
-    print(initPos)
+    lossObj, initPos = setupProblem("LogReg", 
+                                    datasetFilepath="datasets/rcv1_train.binary", 
+                                    randomSeed=10)  # australian_scale, australian, rcv1_train.binary
+    print("Initial position: ",initPos)
 
     # Setup base case optimizers
     optSGD = sgd.SGD(lossObj, initPos, lr=0.1)
@@ -54,10 +56,12 @@ def main():
     optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.1, decayFactor=0.9)
     optAdam = adam.Adam(lossObj, initPos, learningRate=0.5, forgettingFactorM=0.9, forgettingFactorR=0.999)
 
-    # Run the test
-    batchSizeTestValues = [1, 32, 128, 256] # lossObj.xDataListLength for full batch
+    nrOfSamples = lossObj.xDataListLength
+    batchSizeTestValues = [round(factor*nrOfSamples) for factor in [0.1, 0.25, 0.5, 1.0]]
     optimizerList = [optSGD, optNesterov, optMomentum, optAdam]
-    results = testRobustness(optimizerList, batchSizeTestValues, nrEpochs=10)
+
+    # Run the test
+    results = testRobustness(optimizerList, batchSizeTestValues, nrEpochs=25)
 
     # Present
     plotIdx = 1
@@ -69,7 +73,7 @@ def main():
             batchSize = batchSizeTestValues[i] # Want to show batch sizes as well
             plotHistoryGraph(optimizer.lossHistory, title = f"Loss for {optimizer.__class__.__name__}", label=f"{optimizer.__class__.__name__}, batchSize = {batchSize}, {optimizer.getHyperparamStr()}", ylabel="Loss")
         plotIdx += 1
-    plt.savefig("images/all_optimizers_robustness_test.png", dpi=300)   # TODO: Fix legends
+    plt.savefig("images/all_optimizers_robustness_test.png", dpi=300)   # TODO: Fix legends that covers the plot
     plt.show()
 
 if __name__ == "__main__":
