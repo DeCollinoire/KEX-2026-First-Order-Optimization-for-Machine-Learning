@@ -102,7 +102,7 @@ def train(optimizerList, lossObj=None, nrEpochs=100):
     return optimizerList
 
 
-def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scaled", randomSeed=0, initialPosInterval=0.1):
+def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scaled", randomSeed=0, initialPosInterval=0.1, batchSize = 64, toDense = False):
     """ 
     Returns a loss object and an initial position
     Problems to choose from:
@@ -110,6 +110,7 @@ def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scale
     - 'Rosenbrock' : Rosenbrock of dimension 'dim', by default dim=10. 'dim' is only used for the analytical minimum; (generalized) RB can use input of any length.
     - 'LogReg' : Logistic regression on the chosen dataset at 'datasetFilepath'. Must use svmlib format for dataset.
     The randomSeed is used to use the same random position each run.
+    'toDense = True' means that the data will be converted to a dense numpy array, which is easier to work with but can consume more memory. Set to False to keep it as a sparse matrix (scipy.sparse), which is more memory efficient for large datasets with many zeros.
     """
     if randomSeed:
         np.random.seed(randomSeed) # Set the seed internally of the function (optional)
@@ -126,8 +127,8 @@ def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scale
     elif problemName == "LogReg":
         from LogisticRegression import LogisticRegression
         from DataLoader import loadDataAsNumpyArray
-        X, y = loadDataAsNumpyArray(datasetFilepath)
-        lossObj = LogisticRegression(data = [X,y])
+        X, y = loadDataAsNumpyArray(datasetFilepath, toDense = toDense)
+        lossObj = LogisticRegression(data = [X,y], batchSize = batchSize)
         initPos = np.random.uniform(-initialPosInterval, initialPosInterval, lossObj.xDataLength)
     else:
         raise NotImplementedError(f"The problem '{problemName}' is not implemented.")
