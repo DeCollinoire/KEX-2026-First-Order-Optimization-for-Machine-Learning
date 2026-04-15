@@ -45,7 +45,7 @@ class Optimizer:
             self.posHistory.append(currentPos)
             self.lossHistory.append(self.lossObj.evaluate_loss(currentPos))
         else:
-            self.posHistory[historyIndex] =currentPos
+            self.posHistory[historyIndex] = currentPos
             self.lossHistory[historyIndex] = self.lossObj.evaluate_loss(currentPos)
 
     def getHyperparamStr(self):

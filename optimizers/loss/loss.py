@@ -31,7 +31,6 @@ class LossObj:
             # Get the amount of data vectors (X,Y,...)
             self.amountOfDataVectors = len(self.data)
 
-        #self.numberOfBatches = math.ceil(self.xDataLength / self.batchSize) #Gammal
         self.numberOfBatches = math.ceil(self.xDataListLength / self.batchSize)
 
         self.shuffledData = data # self.data.copy()
@@ -96,7 +95,6 @@ class LossObj:
         #endTime = default_timer()
         #print("fillrandombatchlist time taken less than: " + str(endTime - startTime))
         return
-
 
 #Test
 if __name__ == "__main__":
