@@ -7,7 +7,6 @@ from scipy.sparse import csr_matrix
 def loadDataAsNumpyArray(filepath, toDense = True):
     X, y = load_svmlight_file(filepath) # type: ignore - VS Code says it expects 3 values but running says 'expects 2 values'
     X = X.todense() if toDense else X
-    y = np.array(y) if toDense else y
     return X, y
 
 if __name__=="__main__":
@@ -38,7 +37,7 @@ if __name__=="__main__":
     # --- Benchmarking ---
     # Sparse Multiplication (CSR)
     start_sparse = timeit.default_timer()
-    result_sparse = X_subset_sparse.dot(weights)
+    result_sparse = X_subset_sparse @ weights #  X_subset_sparse.dot(weights) # X @ weight
     end_sparse = timeit.default_timer()
     time_sparse = end_sparse - start_sparse
 

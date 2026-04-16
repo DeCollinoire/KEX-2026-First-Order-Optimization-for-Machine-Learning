@@ -1,3 +1,5 @@
+from timeit import default_timer
+
 import numpy as np
 import matplotlib.pyplot as plt
 from copy import deepcopy
@@ -14,13 +16,13 @@ from Rosenbrock import Rosenbrock
 from utils import plotHistoryGraph, train, setupProblem
 from DataLoader import loadDataAsNumpyArray
 
-def testRobustness(groupedByBatches):
+def testRobustness(groupedByBatches, nrOfEpochs=20):
     """
     To test robustness w.r.t. batch sizes, we test the (tuned) optimizers for each batch size. 
     """
     for batchVariant in groupedByBatches:
         print("Testing for batch size: ", batchVariant[0].lossObj.batchSize)
-        train(batchVariant)
+        train(batchVariant, nrEpochs=nrOfEpochs)
 
 def setupOptimizerList(lossObjList, initPos):
     optSGDList = []
@@ -53,11 +55,12 @@ def setupOptimizerList(lossObjList, initPos):
 def main():
     # Setup lossObj
     # Load using loadDataAsNumpyArray, because the setupProblem returns lossObj
-    X, y = loadDataAsNumpyArray("datasets/rcv1_train.binary", toDense=False)  # rcv1_train.binary or australian_scale. X and y are sparse matrices, but will be converted to dense in the setupProblem function if 'toDense = True' is set.
+    datasetFilepath = "datasets/rcv1_train.binary" # rcv1_train.binary or australian_scale
+    X, y = loadDataAsNumpyArray(datasetFilepath, toDense=False)  # rcv1_train.binary or australian_scale. X and y are sparse matrices, but will be converted to dense in the setupProblem function if 'toDense = True' is set.
 
     # Batch size values to test, relative to number of samples
     nrOfSamples = X.shape[0]
-    batchSizeTestValues = [round(factor*nrOfSamples) for factor in [0.1, 0.25, 0.5, 1.0]]
+    batchSizeTestValues = [1, 128, 512, 1024] # [round(factor*nrOfSamples) for factor in [0.1, 0.25, 0.5, 1.0]]
     
     # Create lossObj
     lossObjList = []
@@ -73,8 +76,9 @@ def main():
 
     # Run the test
     print("Starting robustness test...")
-    testRobustness(groupedByBatches)
-    print("Robustness test completed.")
+    startTime = default_timer()
+    testRobustness(groupedByBatches, nrOfEpochs=1)
+    print(f"Robustness test completed in {default_timer() - startTime:.2f} seconds.")
 
     # Present
     i = 0
@@ -84,7 +88,7 @@ def main():
         plt.subplot(len(batchSizeTestValues)//2+1, 2, i+1)
         plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.9)
         for optimizer in optimizerList:
-            plotHistoryGraph(optimizer.lossHistory, title = f"Loss history", label=f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}, batchSize = {optimizer.lossObj.batchSize}", ylabel="Loss")
+            plotHistoryGraph(optimizer.lossHistory, title = f"Loss history, lossObj = {optimizer.lossObj.__class__.__name__}, dataset = {datasetFilepath}", label=f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}, batchSize = {optimizer.lossObj.batchSize}", ylabel="Loss")
         i += 1
     plt.show()
 

@@ -106,7 +106,7 @@ def main():
                 print(f"\t Loss history for {opt.getHyperparamDict()}: {hyperparamName}")
 
                 # Plot all loss history in one graph, alt. use: plt.subplot(2,2, i+1), add index i
-                plotHistoryGraph(lossHistory, f"{opt.__class__.__name__} Loss History \n {opt.getHyperparamDict}", ylabel="Loss")
+                plotHistoryGraph(lossHistory, f"{opt.__class__.__name__} Loss History \n {opt.getHyperparamDict}", label=f"{opt.__class__.__name__}, {opt.getHyperparamStr()}", ylabel="Loss")
             plt.show()
 
 def mainAlt():

@@ -76,16 +76,16 @@ def main():
     # Define an associated hyperparameter config dictionary if desired (missing values will be generated in the test)
     optimizerList = [
         (optSGD, {"lr": [0.001, 0.01, 0.1, 0.5, 1, 2]}),
-        (optNesterov, dict()),
-        (optMomentum, dict()),
-        (optAdam, {"learningRate": [0.01, 0.1, 0.78, 1]})
+        (optNesterov, {"lr": [0.001, 0.01, 0.1, 0.5, 1, 2], "decayFactor": [0.5, 0.7, 0.9, 0.99]}),
+        (optMomentum, {"learningRate": [0.001, 0.01, 0.1, 0.5, 1, 2], "decayFactor": [0.5, 0.7, 0.9, 0.99]}),
+        (optAdam, {"learningRate": [0.01, 0.1, 0.78, 1], "forgettingFactorM": [0.5, 0.7, 0.9, 0.99], "forgettingFactorR": [0.5, 0.7, 0.9, 0.99]})
         ]
     print("Optimizers created")
 
     # Run the test for each optimizer
     for opt, hConfig in optimizerList:
         print(f"\n --- Testing {opt.__class__.__name__} --- ")
-        results = test_hyperparameter_sensitivity(opt, hyperparamConfig=hConfig, nrEpochs = 50)
+        results = test_hyperparameter_sensitivity(opt, hyperparamConfig=hConfig, nrEpochs = 20)
 
         # Present
         # TODO: Print quantitative measurements
