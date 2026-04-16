@@ -3,8 +3,8 @@ from optimizers.loss.loss import LossObj
 from scipy.special import expit
 
 class LogisticRegression(LossObj):
-    def __init__(self, data, batchSize = 1):
-        super().__init__(data, batchSize)
+    def __init__(self, data, batchSize = 1, fullbatch = False):
+        super().__init__(data, batchSize, fullbatch=False)
 
     def evaluate_loss(self, weights):
         # Old version: might cause rounding errors

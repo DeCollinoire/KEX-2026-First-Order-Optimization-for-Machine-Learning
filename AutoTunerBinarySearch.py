@@ -264,9 +264,9 @@ def main():
     # initPosList = [np.array([5.0, 4.0])]
 
     # Logistic Regression
-    X, y = loadDataAsNumpyArray("datasets/australian_scale")
-    lossObj = LogisticRegression(data=[X,y])
-    initPosList = [np.random.uniform(-10, 10, lossObj.xDataLength) for _ in range(1)] # if the same position is wanted, set the seed using: np.random.seed(...)
+    X, y = loadDataAsNumpyArray("datasets/australian_scale", toDense=False)
+    lossObj = LogisticRegression(data=[X,y], fullbatch=True)
+    initPosList = [np.random.uniform(-0.1, 0.1, lossObj.xDataLength) for _ in range(1)] # if the same position is wanted, set the seed using: np.random.seed(...)
 
     # Rosenbrock
     #lossObj = Rosenbrock(10)
