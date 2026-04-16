@@ -74,6 +74,7 @@ def plotHistoryGraph(history, title, label, ylabel, yscale="linear"):
     plt.xlabel("Epochs")
     plt.ylabel(ylabel)
     plt.yscale(yscale)
+    plt.grid(True)
     plt.legend()
     plt.grid()
 

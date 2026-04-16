@@ -6,7 +6,7 @@ from scipy.sparse import csr_matrix
 
 def loadDataAsNumpyArray(filepath, toDense = True):
     X, y = load_svmlight_file(filepath) # type: ignore - VS Code says it expects 3 values but running says 'expects 2 values'
-    X = X.todense() if toDense else X
+    X = np.asarray(X.todense()) if toDense else X
     return X, y
 
 if __name__=="__main__":

@@ -55,9 +55,9 @@ def setupOptimizerList(lossObjList, initPos):
 def main():
     # Setup lossObj
     # Load using loadDataAsNumpyArray, because the setupProblem returns lossObj
-    datasetFilepath = "datasets/rcv1_train.binary" # rcv1_train.binary or australian_scale
-    X, y = loadDataAsNumpyArray(datasetFilepath, toDense=False)  # rcv1_train.binary or australian_scale. X and y are sparse matrices, but will be converted to dense in the setupProblem function if 'toDense = True' is set.
-
+    datasetFilepath = "datasets/australian_scale" # rcv1_train.binary or australian_scale
+    X, y = loadDataAsNumpyArray(datasetFilepath, toDense=True)  # rcv1_train.binary or australian_scale. X and y are sparse matrices, but will be converted to dense in the setupProblem function if 'toDense = True' is set.
+    
     # Batch size values to test, relative to number of samples
     nrOfSamples = X.shape[0]
     batchSizeTestValues = [1, 128, 512, 1024] # [round(factor*nrOfSamples) for factor in [0.1, 0.25, 0.5, 1.0]]
@@ -77,7 +77,7 @@ def main():
     # Run the test
     print("Starting robustness test...")
     startTime = default_timer()
-    testRobustness(groupedByBatches, nrOfEpochs=1)
+    testRobustness(groupedByBatches, nrOfEpochs=5)
     print(f"Robustness test completed in {default_timer() - startTime:.2f} seconds.")
 
     # Present
