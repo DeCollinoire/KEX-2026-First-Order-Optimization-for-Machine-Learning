@@ -9,7 +9,7 @@ def get_batches(data, batch_size=50):
     return [data[start:start + batch_size] for start in range(0, len(data), batch_size)]
 
 class LossObj:
-    def __init__(self, data = [], batchSize = 1):
+    def __init__(self, data = [], batchSize = 1, fullbatch=False):
         self.data = data
         self.batchSize = batchSize
         self.amountOfDataVectors = 1
@@ -32,6 +32,9 @@ class LossObj:
             self.amountOfDataVectors = len(self.data)
 
         self.numberOfBatches = math.ceil(self.xDataListLength / self.batchSize)
+
+        if fullbatch == True:
+            self.batchSize = self.xDataListLength
 
         self.shuffledData = data # self.data.copy()
 
