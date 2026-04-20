@@ -13,11 +13,6 @@ class Momentum(opt.Optimizer):
         #Moment/velocity term
         self.moment = np.zeros_like(initPos)
 
-        #Placeholder for position
-        #self.pos = initPos
-
-        self.initPos = initPos
-
     #Fix memory
     def step(self):
 

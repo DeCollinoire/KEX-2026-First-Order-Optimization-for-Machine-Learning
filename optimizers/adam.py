@@ -28,7 +28,7 @@ class Adam(opt.Optimizer):
         self.biasCorrectedRMSM = np.zeros_like(initPos)
 
         # For avoiding zero division in adam
-        self.epsilon = 1e-2
+        self.epsilon = 1e-8
 
         # Number of iterations/steps taken
         self.iteration = 1

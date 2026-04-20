@@ -13,8 +13,6 @@ class Nesterov(Optimizer):
         # Velocity vector
         self.velocity = np.zeros_like(initPos)
 
-        self.initPos = initPos
-
     def getHyperparamStr(self):
         return f"lr: {self.lr}, decayFactor: {self.decayFactor}"
 
