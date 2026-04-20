@@ -78,28 +78,35 @@ def plotHistoryGraph(history, title, label, ylabel, yscale="linear"):
     plt.legend()
     plt.grid()
 
-def train(optimizerList, lossObj=None, nrEpochs=100):
-    for opt in optimizerList:
-        opt.preAllocateHistory(nrEpochs)
+def train(optimizerList, lossObj=None, nrEpochs=100):    
 
     if lossObj is None:
         lossObj = optimizerList[0].lossObj
+    
+    for opt in optimizerList:
+        if opt.lossObj is not lossObj:
+            raise ValueError(
+                f"{opt.__class__.__name__} uses a different lossObj than expected. "
+                "All optimizers must share the same lossObj for fair comparison."
+            )
+        opt.preAllocateHistory(nrEpochs)
+
     # Start testing
     for epoch in range(0, nrEpochs):
         # Shuffle batches
         lossObj.fillRandomBatchList()
+        lossObj.currentBatchIndex = 0
 
         # Save position for each epoch
         for index, optimizer in enumerate(optimizerList):
             optimizer.savePosition(epoch)
 
-        lossObj.currentBatchIndex = 0
         for batch in range(lossObj.numberOfBatches):
             for index, optimizer in enumerate(optimizerList):
                 optimizer.step()
 
             # On to next batch for calculating gradient and so on
-            lossObj.currentBatchIndex = lossObj.currentBatchIndex + 1
+            lossObj.currentBatchIndex += 1
     return optimizerList
 
 

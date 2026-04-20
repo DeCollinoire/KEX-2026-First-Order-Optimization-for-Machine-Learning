@@ -58,15 +58,23 @@ def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict
 def main():
     # Setup loss object
     print("Setting up...")
-    datasetFilepath = "datasets/australian_scale"
+    randomSeed = 25
+
+    # Logistic Regression
+    datasetFilepath = "datasets/rcv1_train.binary" # This is also used to show the name in the plot title
     lossObj, initPos = setupProblem("LogReg", 
                                     datasetFilepath = datasetFilepath, 
-                                    randomSeed = 10,
+                                    randomSeed = randomSeed,
                                     initialPosInterval=0.1,
-                                    batchSize = 690,
+                                    batchSize = 1000000,
                                     toDense = False)  # australian_scale, australian, rcv1_train.binary
-    #lossObj, initPos = setupProblem("Rosenbrock", dim=10)
-    #lossObj, initPos = setupProblem("QDF")
+
+    # Rosenbrock
+    # datasetFilepath = "Rosenbrock" # This is also used to show the name in the plot title
+    # lossObj, initPos = setupProblem("Rosenbrock", dim=10, randomSeed = randomSeed)
+
+    #lossObj, initPos = setupProblem("QDF", randomSeed = randomSeed)
+
     print(f"Data loaded and lossObj created")
 
     # Setup base case optimizers
@@ -77,8 +85,8 @@ def main():
 
     # Define an associated hyperparameter config dictionary if desired (missing values will be generated in the test)
     optimizerList = [
-        (optSGD, {"lr": [0.01, 0.1, 0.5, 1, 2, 3, 4, 5]}),
-        (optNesterov, {"lr": [0.001, 0.01, 0.1, 0.5, 0.75, 1, 2, 3], "decayFactor": [0.5, 0.7, 0.9, 0.99]}),
+        (optSGD, {"lr": [0.01, 0.1, 0.5, 1, 2, 3, 4, 5, 1000, 1800]}),
+        (optNesterov, {"lr": [0.001, 0.01, 0.1, 0.5, 0.75, 1, 2, 5], "decayFactor": [0.3, 0.5, 0.7, 0.9, 0.99]}),
         (optMomentum, {"learningRate": [0.001, 0.01, 0.1, 0.5, 1, 2, 3], "decayFactor": [0.5, 0.7, 0.9, 0.99]}),
         (optAdam, {"learningRate": [0.01, 0.1, 0.15, 0.2, 0.25, 0.5], "forgettingFactorM": [0.5, 0.7, 0.9, 0.99], "forgettingFactorR": [0.5, 0.7, 0.9, 0.99]})
         ]
@@ -87,7 +95,7 @@ def main():
     # Run the test for each optimizer
     for opt, hConfig in optimizerList:
         print(f"\n --- Testing {opt.__class__.__name__} --- ")
-        results = test_hyperparameter_sensitivity(opt, hyperparamConfig=hConfig, nrEpochs = 100)
+        results = test_hyperparameter_sensitivity(opt, hyperparamConfig=hConfig, nrEpochs = 50)
 
         # Present
         # TODO: Print quantitative measurements
@@ -101,7 +109,7 @@ def main():
             plt.subplot(3, 1, i+1)
             plt.subplots_adjust(right=0.8)
             for optVariation in optimizerList:
-                plotHistoryGraph(optVariation.lossHistory, title = f"Loss for {optVariation.__class__.__name__}, variation in '{hyperparamName}', lossObj = {optVariation.lossObj.__class__.__name__}, batchSize = {optVariation.lossObj.batchSize}, dataset = {datasetFilepath}", label=f"{optVariation.__class__.__name__}, {optVariation.getHyperparamStr()}", ylabel="Loss")
+                plotHistoryGraph(optVariation.lossHistory, title = f"Loss for {optVariation.__class__.__name__}, variation in '{hyperparamName}', lossObj = {optVariation.lossObj.__class__.__name__}, batchSize = {optVariation.lossObj.batchSize}, dataset = {datasetFilepath}, randomSeed = {randomSeed}", label=f"{optVariation.__class__.__name__}, {optVariation.getHyperparamStr()}", ylabel="Loss")
             i += 1
         plt.savefig("images/"+opt.__class__.__name__+"_sensitivity_test.png", dpi=300, bbox_inches = 'tight')
     plt.show()
