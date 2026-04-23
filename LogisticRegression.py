@@ -4,22 +4,28 @@ from scipy.special import expit
 
 class LogisticRegression(LossObj):
     def __init__(self, data, batchSize = 1, fullbatch = False):
-        super().__init__(data, batchSize, fullbatch=False)
+        super().__init__(data, batchSize, fullbatch)
 
-    def evaluate_loss(self, weights):
+    def evaluate_loss(self, position):
         # Old version: might cause rounding errors
         # z = self.y * (self.X @ position)
         # return np.mean(np.logaddexp(0, -z))
         
         # Might be more stable if another log programming function is used.
-        return (1/self.xDataListLength) * np.sum(np.log(1 + np.exp(-self.y * (self.X @ weights))))
+        return (1/self.xDataListLength) * np.sum(np.log(1 + np.exp(-self.y * (self.X @ position))))
 
-    def evaluate_gradient(self, weights):
+    def evaluate_gradient(self, position):
         X, y = self.getCurrentBatch()
-        # return -(X.T @ (y / (1 + np.exp(y * (X @ weights))))) / len(y)
-        #z = y * (X @ weights)
-        #return -(X.T @ (y * expit(-z))) / len(y)
-        return -(X.T @ (y * expit(-(y * (X @ weights))))) / len(y) #expit is a sigmoid function
+        # Alt 1
+        # z = y * (X @ position)
+        # return -(X.T @ (y * expit(-z))) / len(y)
+
+        # Alt 2
+        return -(X.T @ (y * expit(-(y * (X @ position))))) / len(y) #expit is a sigmoid function
+
+        # Alt 3 (for {0, 1} classification)
+        # y_proba = expit(X @ position)
+        # return (y_proba - y) @ X / len(y)
 
 if __name__=='__main__':
     from utils import setupProblem

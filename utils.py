@@ -78,36 +78,66 @@ def plotHistoryGraph(history, title, label, ylabel, yscale="linear"):
     plt.legend()
     plt.grid()
 
-def train(optimizerList, lossObj=None, nrEpochs=100):    
-
+def train(optimizerList, lossObj=None, nrEpochs=50, printProgress=False):
     if lossObj is None:
-        lossObj = optimizerList[0].lossObj
-    
-    for opt in optimizerList:
-        if opt.lossObj is not lossObj:
-            raise ValueError(
-                f"{opt.__class__.__name__} uses a different lossObj than expected. "
-                "All optimizers must share the same lossObj for fair comparison."
-            )
-        opt.preAllocateHistory(nrEpochs)
+        lossObj = optimizerList[0].lossObj # Assume all optimizers have the same loss object, so we can take it from the first one
 
     # Start testing
     for epoch in range(0, nrEpochs):
+        # Save the history per epoch
+        for optimizer in optimizerList:
+            optimizer.savePosition()
+        print(f"Epoch {epoch+1}/{nrEpochs} completed. \r") if printProgress else None
+
+
         # Shuffle batches
         lossObj.fillRandomBatchList()
-        lossObj.currentBatchIndex = 0
-
-        # Save position for each epoch
-        for index, optimizer in enumerate(optimizerList):
-            optimizer.savePosition(epoch)
-
+        
+        # Step each optimizer in parallel (using the same batch).
         for batch in range(lossObj.numberOfBatches):
             for index, optimizer in enumerate(optimizerList):
                 optimizer.step()
 
-            # On to next batch for calculating gradient and so on
-            lossObj.currentBatchIndex += 1
+            # Step to the next batch
+            lossObj.currentBatchIndex = lossObj.currentBatchIndex + 1
     return optimizerList
+
+def train_external_batching(optimizerList, lossObj, X, y, batchSize=None, nrEpochs=100, printProgress=False):
+    """ 
+    This version externalizes batching from the lossObj.
+    """
+    nrSamples = X.shape[0]
+    nrFeatures = X.shape[1]
+    if batchSize is None:
+        batchSize = nrSamples # If no batch size is provided, use the whole dataset as one batch (i.e., full-batch gradient descent)
+    numberOfBatches = int(np.ceil(nrSamples / batchSize))
+
+    # Start testing
+    for epoch in range(0, nrEpochs):
+        # Save position for each epoch
+        for optimizer in optimizerList:
+            optimizer.savePosition()
+        print(f"Epoch {epoch+1}/{nrEpochs} completed. \r") if printProgress else None
+
+        # Shuffle data
+        indices = np.random.permutation(nrSamples)
+        X_shuffled = X[indices]
+        y_shuffled = y[indices]
+
+        for batch in range(numberOfBatches):
+            # Create batch
+            start_idx = batch * batchSize
+            end_idx = min((batch + 1) * batchSize, nrSamples)
+            X_batch = X_shuffled[start_idx:end_idx]
+            y_batch = y_shuffled[start_idx:end_idx]
+
+            # Set current batch in the loss object (to avoid passing the batch to the optimizers). This is necessary since the optimizers call lossObj.evaluate() without passing the batch, so the lossObj needs to know which batch to use internally. An alternative is to pass the lossObj and the batch to the optimizers directly
+            lossObj.setCurrentBatch(X_batch, y_batch)
+
+            # Step the optimizers
+            for optimizer in optimizerList:
+                optimizer.step()
+
 
 
 def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scaled", randomSeed=0, initialPosInterval=0.1, batchSize = 64, toDense = False):

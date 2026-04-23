@@ -34,7 +34,7 @@ def setupOptimizerList(lossObjList, initPos):
 
     # Create lossObjects
     for lossObj in lossObjList:
-        privateSGD = sgd.SGD(lossObj, initPos, lr=0.1)
+        privateSGD = sgd.SGD(lossObj, initPos, lr=512)
         privateMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.1, decayFactor=0.9)
         privateNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.1, decayFactor=0.9)
         privateAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
@@ -55,12 +55,13 @@ def setupOptimizerList(lossObjList, initPos):
 def main():
     # Setup lossObj
     # Load using loadDataAsNumpyArray, because the setupProblem returns lossObj
-    datasetFilepath = "datasets/australian_scale" # rcv1_train.binary or australian_scale
-    X, y = loadDataAsNumpyArray(datasetFilepath, toDense=True)  # rcv1_train.binary or australian_scale. X and y are sparse matrices, but will be converted to dense in the setupProblem function if 'toDense = True' is set.
-    
+    datasetFilepath = "datasets/rcv1_train.binary" # rcv1_train.binary or australian_scale
+    X, y = loadDataAsNumpyArray(datasetFilepath, toDense=False)  # rcv1_train.binary or australian_scale. X and y are sparse matrices, but will be converted to dense in the setupProblem function if 'toDense = True' is set.
+    # y = np.maximum(y, 0)
+
     # Batch size values to test, relative to number of samples
-    nrOfSamples = X.shape[0]
-    batchSizeTestValues = [1, 128, 512, 1024] # [round(factor*nrOfSamples) for factor in [0.1, 0.25, 0.5, 1.0]]
+    nrOfSamples = X.shape[0] # type: ignore
+    batchSizeTestValues = [128, 512, 1024] # [round(factor*nrOfSamples) for factor in [0.1, 0.25, 0.5, 1.0]]
     
     # Create lossObj
     lossObjList = []
@@ -77,7 +78,7 @@ def main():
     # Run the test
     print("Starting robustness test...")
     startTime = default_timer()
-    testRobustness(groupedByBatches, nrOfEpochs=5)
+    testRobustness(groupedByBatches, nrOfEpochs=50)
     print(f"Robustness test completed in {default_timer() - startTime:.2f} seconds.")
 
     # Present

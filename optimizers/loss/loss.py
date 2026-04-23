@@ -70,6 +70,7 @@ class LossObj:
             self.numberOfBatches = math.ceil(self.xDataListLength / self.batchSize)
             self.randomBatchList = [[[None] for _1 in range (self.amountOfDataVectors)] for _ in range(self.numberOfBatches)] #Allocate memory
             self.fillRandomBatchList() if len(self.data) > 0 else None
+            self.currentBatchIndex = 0
 
     def getCurrentBatch(self):
         batch = self.randomBatchList[self.currentBatchIndex]

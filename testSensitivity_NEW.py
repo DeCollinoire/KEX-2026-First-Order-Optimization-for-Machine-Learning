@@ -85,10 +85,10 @@ def main():
 
     # Define an associated hyperparameter config dictionary if desired (missing values will be generated in the test)
     optimizerList = [
-        (optSGD, {"lr": [0.01, 0.1, 0.5, 1, 2, 3, 4, 5, 1000, 1800]}),
-        (optNesterov, {"lr": [0.001, 0.01, 0.1, 0.5, 0.75, 1, 2, 5], "decayFactor": [0.3, 0.5, 0.7, 0.9, 0.99]}),
-        (optMomentum, {"learningRate": [0.001, 0.01, 0.1, 0.5, 1, 2, 3], "decayFactor": [0.5, 0.7, 0.9, 0.99]}),
-        (optAdam, {"learningRate": [0.01, 0.1, 0.15, 0.2, 0.25, 0.5], "forgettingFactorM": [0.5, 0.7, 0.9, 0.99], "forgettingFactorR": [0.5, 0.7, 0.9, 0.99]})
+        (optSGD, {"lr": [0.01, 0.1, 0.5, 1, 2, 1000, 1800]}),
+        (optNesterov, {"lr": [0.001, 0.01, 0.1, 0.5, 2, 5, 1000, 1800], "decayFactor": [0.3, 0.5, 0.7, 0.9, 0.99]}),
+        (optMomentum, {"learningRate": [0.001, 0.01, 0.1, 0.5, 1, 2, 3, 1000, 1800], "decayFactor": [0.5, 0.7, 0.9, 0.99]}),
+        (optAdam, {"learningRate": [0.01, 0.1, 0.25, 0.5, 14], "forgettingFactorM": [0.5, 0.7, 0.9, 0.99], "forgettingFactorR": [0.5, 0.7, 0.9, 0.99]})
         ]
     print("Optimizers created")
 
@@ -104,11 +104,11 @@ def main():
         # Plotting
         i = 0
         plt.figure(str(opt.__class__.__name__+"_sensitivity_test"), figsize=(10, 6))
-        for hyperparamName, optimizerList in results.items():
+        for hyperparamName, optimizerListCopy in results.items():
             # Plot all variations in the same graph, but each hyperparameter gets one subplot.
             plt.subplot(3, 1, i+1)
             plt.subplots_adjust(right=0.8)
-            for optVariation in optimizerList:
+            for optVariation in optimizerListCopy:
                 plotHistoryGraph(optVariation.lossHistory, title = f"Loss for {optVariation.__class__.__name__}, variation in '{hyperparamName}', lossObj = {optVariation.lossObj.__class__.__name__}, batchSize = {optVariation.lossObj.batchSize}, dataset = {datasetFilepath}, randomSeed = {randomSeed}", label=f"{optVariation.__class__.__name__}, {optVariation.getHyperparamStr()}", ylabel="Loss")
             i += 1
         plt.savefig("images/"+opt.__class__.__name__+"_sensitivity_test.png", dpi=300, bbox_inches = 'tight')
