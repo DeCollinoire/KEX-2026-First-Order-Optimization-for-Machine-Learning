@@ -29,13 +29,14 @@ def main():
 
     # Optimizers
     optSGD = SGD(initPos, lr=100) # Samma fel för RCV1 kvarstår
-    optMomentum = Momentum(initPos, lr=0.01, decayFactor=0.9)
-    optNesterov = Nesterov(initPos, lr=0.01, decayFactor=0.9)
-    optAdam = Adam(initPos, lr=0.01, beta1=0.9, beta2=0.999)
+    optSGD2 = SGD(initPos, lr=0.1)
+    #optMomentum = Momentum(initPos, lr=0.01, decayFactor=0.9)
+    #optNesterov = Nesterov(initPos, lr=0.01, decayFactor=0.9)
+    #optAdam = Adam(initPos, lr=0.01, beta1=0.9, beta2=0.999)
 
     # Train
     print("Starting training...")
-    optimizerList = [optSGD, optMomentum, optNesterov, optAdam]
+    optimizerList = [optSGD, optSGD2] #, optMomentum, optNesterov, optAdam]
     train(optimizerList, lossObj, X, y, batchSize=batchSize, nrEpochs=nrEpochs, printProgress=printProgress)
     
     # Plot

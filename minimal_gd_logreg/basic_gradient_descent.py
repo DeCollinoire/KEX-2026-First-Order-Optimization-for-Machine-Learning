@@ -1,49 +1,55 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.datasets import fetch_rcv1
+from sklearn.datasets import load_svmlight_file
+from sklearn.preprocessing import normalize
+from scipy.special import expit
 
-# 1. Load the dataset (subset='train' for ~23k samples)
-rcv1 = fetch_rcv1(subset='train')
-X = rcv1.data  # Scipy CSR sparse matrix
-# Use the first topic for a binary classification task
-y = rcv1.target[:, 0].toarray().ravel()
+def compute_loss(X, y, w):
+    return np.sum(np.logaddexp(0, -y * (X @ w))) # alt. use np.mean
 
-# 2. Gradient Descent Parameters
-n_samples, n_features = X.shape
-weights = np.zeros(n_features)
-learning_rate = 10.0  # High LR often needed for log-tfidf normalized data
-n_iterations = 100
-loss_history = []
+def compute_gradient(X, y, w):
+    activation = expit(-y * (X @ w))
+    dw = -y * activation
+    return (X.T @ dw) / X.shape[0] # NOTE: If dividing by X.shape[0], we get a really small gradient and don't get Amirreza's results
 
-def sigmoid(z):
-    return 1 / (1 + np.exp(-np.clip(z, -250, 250)))
-
-# 3. Full-Batch Gradient Descent Loop
-print(f"Starting GD on {n_samples} samples with {n_features} features...")
-
-for i in range(n_iterations):
-    # Linear combination (Sparse dot product)
-    z = X.dot(weights)
-    predictions = sigmoid(z)
+def train(X, y, lr=1.0, epochs=100):
+    w = np.zeros(X.shape[1])
+    history = []
     
-    # Binary Cross-Entropy Loss
-    loss = -np.mean(y * np.log(predictions + 1e-10) + (1 - y) * np.log(1 - predictions + 1e-10))
-    loss_history.append(loss)
-    
-    # Gradient Calculation: (1/m) * X^T * (pred - y)
-    gradient = X.T.dot(predictions - y) / n_samples
-    
-    # Update Weights
-    weights -= learning_rate * gradient
-    
-    if i % 20 == 0:
-        print(f"Iteration {i}: Loss {loss:.4f}")
+    for i in range(epochs):
+        loss = compute_loss(X, y, w)
+        history.append(loss)
+        
+        # Compute gradient and update weights
+        grad = compute_gradient(X, y, w)
+        w -= lr * grad
+        
+        if i % 10 == 0:
+            print(f"Iteration {i}: Loss {loss:.6f}")
+    return history
 
-# 4. Plotting
-plt.figure(figsize=(8, 5))
-plt.plot(loss_history, color='royalblue', linewidth=2)
-plt.title("Full-Batch Gradient Descent Convergence (RCV1)")
-plt.xlabel("Iteration")
-plt.ylabel("Binary Cross-Entropy Loss")
-plt.grid(True, linestyle='--', alpha=0.6)
+# Config
+dataset_filepath = "datasets/rcv1_train.binary" # rcv1_train.binary, australian_scale
+normalization_on = True
+
+# Load Dataset, optional normalization
+X, y = load_svmlight_file(dataset_filepath) # type: ignore
+if normalization_on:
+    X = normalize(X, norm='l2', axis=1)
+
+    # Alt. 2
+    # scaler = MaxAbsScaler()
+    # X = scaler.fit_transform(X)
+
+# Train and plot
+plt.figure()
+for lr in [1e-3, 1e-2, 5e-2, 1e-1]: # amirreza's choice for australian: [1e-3, 2e-3, 8e-3, 3e-2]
+    loss_history = train(X, y, lr=lr, epochs=50)
+    plt.plot(loss_history, marker="o", label=f"lr = {lr}")
+
+plt.title(f"Logistic Regression Loss, dataset = {dataset_filepath}, normalization = {normalization_on}")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.legend()
 plt.show()
+
