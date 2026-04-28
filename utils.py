@@ -140,7 +140,7 @@ def train_external_batching(optimizerList, lossObj, X, y, batchSize=None, nrEpoc
 
 
 
-def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scaled", randomSeed=0, initialPosInterval=0.1, batchSize = 64, toDense = False):
+def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scaled", randomSeed=0, initialPosInterval=0.1, batchSize = 64, toDense = False, l2NormalizationOn=False):
     """ 
     Returns a loss object and an initial position
     Problems to choose from:
@@ -165,7 +165,7 @@ def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scale
     elif problemName == "LogReg":
         from LogisticRegression import LogisticRegression
         from DataLoader import loadDataAsNumpyArray
-        X, y = loadDataAsNumpyArray(datasetFilepath, toDense = toDense)
+        X, y = loadDataAsNumpyArray(datasetFilepath, toDense = toDense, l2NormalizationOn=l2NormalizationOn)
         lossObj = LogisticRegression(data = [X,y], batchSize = batchSize)
         initPos = np.random.uniform(-initialPosInterval, initialPosInterval, lossObj.xDataLength)
     else:

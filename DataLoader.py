@@ -5,11 +5,11 @@ from sklearn.datasets import load_svmlight_file
 from scipy.sparse import csr_matrix
 from sklearn.preprocessing import normalize
 
-def loadDataAsNumpyArray(filepath, toDense = True, L2NormalizationOn=False):
+def loadDataAsNumpyArray(filepath, toDense = True, l2NormalizationOn=False):
     X, y = load_svmlight_file(filepath) # type: ignore - VS Code says it expects 3 values but running says 'expects 2 values'
 
     # Normalizing
-    if L2NormalizationOn == True:
+    if l2NormalizationOn == True:
         X = normalize(X, norm='l2', axis=1)
 
     X = np.asarray(X.todense()) if toDense else X
