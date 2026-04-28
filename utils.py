@@ -76,7 +76,7 @@ def plotHistoryGraph(history, title, label, ylabel, yscale="linear"):
     plt.yscale(yscale)
     plt.grid(True)
     plt.legend()
-    plt.grid()
+    plt.grid(True)
 
 def train(optimizerList, lossObj=None, nrEpochs=50, printProgress=False):
     if lossObj is None:
