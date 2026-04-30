@@ -12,7 +12,7 @@ class LogisticRegression(LossObj):
         # return np.mean(np.logaddexp(0, -z))
         
         # Might be more stable if another log programming function is used.
-        return (1/self.xDataListLength) * np.sum(np.log(1 + np.exp(-self.y * (self.X @ position))))
+        return np.sum(np.log(1 + np.exp(-self.y * (self.X @ position)))) # / self.xDataListLength, NOTE: No divison by dataset length
 
     def evaluate_gradient(self, position):
         X, y = self.getCurrentBatch()
@@ -21,7 +21,7 @@ class LogisticRegression(LossObj):
         # return -(X.T @ (y * expit(-z))) / len(y)
 
         # Alt 2
-        return -(X.T @ (y * expit(-(y * (X @ position))))) / len(y) #expit is a sigmoid function
+        return -(X.T @ (y * expit(-(y * (X @ position))))) # / len(y) # expit is a sigmoid function. NOTE: Division by len(y) no longer needed.
 
         # Alt 3 (for {0, 1} classification)
         # y_proba = expit(X @ position)

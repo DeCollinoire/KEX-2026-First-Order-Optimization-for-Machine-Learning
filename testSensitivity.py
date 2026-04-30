@@ -7,7 +7,7 @@ from utils import plotHistoryGraph, train
 from copy import deepcopy
 
 """
-DEPRECATED VERSION
+INCOMPLETE
 This version needs to add presentation, and potentially to improve the 'optimizerGroup' class.
 """
 

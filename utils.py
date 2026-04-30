@@ -68,15 +68,17 @@ def plotPath_3d(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
     
     plt.legend()
 
-def plotHistoryGraph(history, title, label, ylabel, yscale="linear"):
-    plt.plot(history, marker="o", label=label)
+def plotHistoryGraph(history, title, label, ylabel, yscale="linear", legendOn=True):
+    # Ensure you use the comma (line,) to unpack the list returned by plot
+    line, = plt.plot(history, marker="o", label=label) 
     plt.title(title)
     plt.xlabel("Epochs")
     plt.ylabel(ylabel)
     plt.yscale(yscale)
     plt.grid(True)
-    plt.legend()
-    plt.grid(True)
+    if legendOn:
+        plt.legend()
+    return line
 
 def train(optimizerList, lossObj=None, nrEpochs=50, printProgress=False):
     if lossObj is None:

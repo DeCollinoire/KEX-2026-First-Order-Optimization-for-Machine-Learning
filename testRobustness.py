@@ -15,9 +15,15 @@ from Rosenbrock import Rosenbrock
 from utils import plotHistoryGraph, train, setupProblem
 from DataLoader import loadDataAsNumpyArray
 
+"""
+DEPRECATED VERSION
+NOTE: This version uses setBatchSize to internally change the batch size, and then assumes
+"""
+
 def testRobustness(optimizerList: List[Optimizer], batchSizeTestValues: List[int], nrEpochs=50):
     """
-    To test robustness w.r.t. batch sizes, we test the (tuned) optimizers for each batch size. 
+    To test robustness w.r.t. batch sizes, we test the (tuned) optimizers for each batch size.
+    We assume all optimizers in the optimizerList have the same lossObj.
     """
     # Get the loss object
     lossObj = optimizerList[0].lossObj
