@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.special import expit
 import mplcursors
+import itertools
 
 # Project files
 from utils import plotHistoryGraph, train, train_external_batching, setupProblem
@@ -37,23 +38,20 @@ class LogisticRegression_ExternalBatching():
         X, y = self.getCurrentBatch()
         return -(X.T @ (y * expit(-(y * (X @ weights))))) # expit is a sigmoid function
 
-import itertools
 
-import itertools
-
-def createVariants(lossObj, initPos, problemName="australian"):
+def createVariants(lossObj, initPos, problemName="australian_scale"):
     # Master configuration for each problem
     configs = {
-        "australian": {
-            "SGD": {"lr": [0.01, 0.02, 0.03, 0.04, 0.05, 0.06]},
+        "australian_scale": {
+            "SGD": {"lr": [0.0005, 0.0006, 0.0007, 0.0008, 0.001, 0.002, 0.003, 0.004, 0.005]},
             "Nesterov": {
-                "lr": [0.02, 0.03, 0.04, 0.05, 0.06],
-                "df": [0.5, 0.7, 0.9, 0.99]
+                "lr": [0.01, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05],
+                "df": [0.5, 0.6, 0.7, 0.9, 0.99, 0.999]
             },
             "Adam": {
-                "lr": [0.1, 0.5, 1.0],
-                "fm": [0.9, 0.99],
-                "fr": [0.9, 0.99]
+                "lr": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+                "fm": [0.7, 0.8, 0.9, 0.99],
+                "fr": [0.7, 0.8, 0.9, 0.99]
             }
         },
         "rcv1": {
@@ -70,10 +68,10 @@ def createVariants(lossObj, initPos, problemName="australian"):
         },
         "Rosenbrock": {
             "SGD": {
-                "lr": [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008, 0.0009, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008] 
+                "lr": [0.00005, 0.00006, 0.00007, 0.00008, 0.00009, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008, 0.0009],
             },
             "Nesterov": {
-                "lr": [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008, 0.0009, 0.001],
+                "lr": [0.00005, 0.00006, 0.00007, 0.00008, 0.00009, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008, 0.0009],
                 "df": [0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.999]
             },
             "Adam": {
@@ -85,7 +83,7 @@ def createVariants(lossObj, initPos, problemName="australian"):
     }
 
     # Extract the specific config for the current problem
-    problemConfig = configs.get(problemName, configs["australian"]) # default to australian
+    problemConfig = configs.get(problemName, configs["australian_scale"]) # default to australian
     variants = {opt: [] for opt in ["SGD", "Nesterov", "Momentum", "Adam"]}
 
     # SGD
@@ -109,19 +107,20 @@ def createVariants(lossObj, initPos, problemName="australian"):
 datasetMap = {
     "Rosenbrock": "N/A",
     "australian": "datasets/australian",
+    "australian_scale": "datasets/australian_scale",
     "rcv1": "datasets/rcv1_train.binary"
 }
 
 def main():
     # Config
-    randomSeed = 10
+    randomSeed = 25
     problemName = "Rosenbrock"
     datasetFilepath = datasetMap[problemName] # This is also used for plot titles
     batchSize = 100000 # None means fullbatch, only used by LogReg
     initialPosInterval = 0
-    l2NormalizationOn = (problemName == "australian") or (datasetFilepath == "australian_scale")
-    dim = 10 # For Rosenbrock only
-    nrEpochs = 20
+    l2NormalizationOn = (problemName == "australian") or (problemName == "australian_scale")
+    dim = 2 # For Rosenbrock only
+    nrEpochs = 100
     printProgress=True
 
     # Setup
@@ -145,21 +144,22 @@ def main():
     # Plot
     for optClassName, optVariants in variants.items():
         plt.figure(str(optClassName+"_sensitivity_test"), figsize=(10, 6))
+        plt.subplots_adjust(left=0.1, bottom=0.05, right=0.8, top=None, wspace=None, hspace=0.9)
         lines = []
         
         for opt in optVariants:
             # Pass the hyperparameter string into the label or a custom attribute
             label_str = f"{opt.__class__.__name__}: {opt.getHyperparamStr()}"
             line = plotHistoryGraph(opt.lossHistory, 
-                                    title=f"{optClassName} Sensitivity, {problemName}, dataset = {datasetFilepath}, batchSize = {"fullbatch" if batchSize is None else batchSize}", 
+                                    title=f"{optClassName} Sensitivity, {problemName}, dim = {lossObj.xDataLength}, dataset = {datasetFilepath}, batchSize = {"fullbatch" if batchSize is None else batchSize}", 
                                     label=label_str, 
                                     ylabel="Loss",
                                     legendOn=False # use external legend
                                     )
             lines.append(line)
         # Position legend outside to the right
-        plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0.)
-        plt.tight_layout() # Adjust layout to make room for the legend
+        plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0.)
+        # plt.tight_layout() # Adjust layout to make room for the legend
         
         # Adding interactability
         cursor = mplcursors.cursor(hover=False)
@@ -167,7 +167,7 @@ def main():
         @cursor.connect("add")
         def _(sel):
             sel.annotation.set_text(sel.artist.get_label())
-            sel.artist.set_linewidth(6)
+            sel.artist.set_linewidth(9)
 
         @cursor.connect("remove")
         def _(sel):
