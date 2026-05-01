@@ -57,7 +57,7 @@ def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict
 
 def main():
     # Config
-    problemName = "LogReg"
+    problemName = "Rosenbrock"
     datasetFilepath = "datasets/rcv1_train.binary" # australian_scale, australian, rcv1_train.binary # This is also used to show the name in the plot title
     randomSeed = 25
     initialPosInterval = 0.1
@@ -81,7 +81,7 @@ def main():
 
     # Define an associated hyperparameter config dictionary if desired (missing values will be generated in the test)
     optimizerList = [
-        (optSGD, {"lr": [0.01, 0.05, 0.07, 0.075, 0.08, 0.1]}),
+        (optSGD, {"lr": [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.002, 0.003, 0.004]}),
         (optNesterov, {"lr": [0.01, 0.05, 0.07, 0.075, 0.08, 0.1], "decayFactor": [0.3, 0.5, 0.7, 0.8, 0.85, 0.9]}),
         (optMomentum, {"learningRate": [0.01, 0.05, 0.07, 0.075, 0.08, 0.1], "decayFactor": [0.5, 0.7, 0.9, 0.99]}),
         (optAdam, {"learningRate": [0.01, 0.1, 0.2, 0.25, 0.5, 1, 2, 3], "forgettingFactorM": [0.5, 0.7, 0.9, 0.99], "forgettingFactorR": [0.5, 0.7, 0.9, 0.99]})

@@ -164,7 +164,7 @@ def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scale
         from Rosenbrock import Rosenbrock
         lossObj = Rosenbrock(dim)
         initPos =  np.random.uniform(-initialPosInterval, initialPosInterval, dim)
-    elif problemName == "LogReg":
+    elif problemName in ("LogReg", "australian", "australian_scale", "rcv1"):
         from LogisticRegression import LogisticRegression
         from DataLoader import loadDataAsNumpyArray
         X, y = loadDataAsNumpyArray(datasetFilepath, toDense = toDense, l2NormalizationOn=l2NormalizationOn)
