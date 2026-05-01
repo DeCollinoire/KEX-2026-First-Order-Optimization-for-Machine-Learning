@@ -6,6 +6,7 @@ class Rosenbrock(LossObj):
         """ Note that dim is only used for determining the analytical minima. The gradient and loss functions can handle 'positions' of arbitrary dimensions"""
         super().__init__()
         self.dim = dim
+        self.xDataLength = dim
 
     def minima(self):
         return np.ones(self.dim)
