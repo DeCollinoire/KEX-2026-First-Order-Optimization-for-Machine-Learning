@@ -173,4 +173,3 @@ def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scale
     else:
         raise NotImplementedError(f"The problem '{problemName}' is not implemented.")
     return lossObj, initPos
-
