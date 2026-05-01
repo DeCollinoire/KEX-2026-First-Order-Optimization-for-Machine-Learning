@@ -68,14 +68,14 @@ def createVariants(lossObj, initPos, problemName="australian_scale"):
         },
         "Rosenbrock": {
             "SGD": {
-                "lr": [0.00005, 0.00006, 0.00007, 0.00008, 0.00009, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008, 0.0009],
+                "lr": [0.00005, 0.00006, 0.00007, 0.00008, 0.00009, 0.0001, 0.0002, 0.0003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009],
             },
             "Nesterov": {
-                "lr": [0.00005, 0.00006, 0.00007, 0.00008, 0.00009, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008, 0.0009],
+                "lr": [0.00005, 0.00006, 0.00007, 0.00008],
                 "df": [0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.999]
             },
             "Adam": {
-                "lr": [0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01],
+                "lr": [0.004, 0.005, 0.006, 0.007, 0.01],
                 "fm": [0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.999],
                 "fr": [0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.999]
             }
@@ -119,7 +119,7 @@ def main():
     batchSize = 100000 # None means fullbatch, only used by LogReg
     initialPosInterval = 0
     l2NormalizationOn = (problemName == "australian") or (problemName == "australian_scale")
-    dim = 2 # For Rosenbrock only
+    dim = 10 # For Rosenbrock only
     nrEpochs = 100
     printProgress=True
 
