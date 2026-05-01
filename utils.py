@@ -68,9 +68,9 @@ def plotPath_3d(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
     
     plt.legend()
 
-def plotHistoryGraph(history, title, label, ylabel, yscale="linear", legendOn=True):
+def plotHistoryGraph(history, title, label, ylabel, yscale="linear", legendOn=True, marker="o"):
     # Ensure you use the comma (line,) to unpack the list returned by plot
-    line, = plt.plot(history, marker="o", label=label) 
+    line, = plt.plot(history, marker=marker, label=label)
     plt.title(title)
     plt.xlabel("Epochs")
     plt.ylabel(ylabel)
