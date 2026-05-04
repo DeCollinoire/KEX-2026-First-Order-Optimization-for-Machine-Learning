@@ -24,7 +24,35 @@ def testRobustness(groupedByBatches, nrOfEpochs=20):
         print("Testing for batch size: ", batchVariant[0].lossObj.batchSize)
         train(batchVariant, nrEpochs=nrOfEpochs)
 
-def setupOptimizerList(lossObjList, initPos):
+def setupOptimizerList(lossObjList, initPos, problemName="rcv1"):
+    # Optimizer config contains the tuned optimizers
+    optimizerConfig = {
+        "Rosenbrock": {
+            "SGD": {"lr": 0.0008},
+            "Momentum": {"learningRate": 0.002, "decayFactor": 0.9},
+            "Nesterov": {"lr": 0.005, "decayFactor": 0.92},
+            "Adam": {"learningRate": 0.0168, "forgettingFactorM": 0.95, "forgettingFactorR": 0.999}
+        },
+        "australian": { # these are assumed to be the same as for australian_scale
+            "SGD": {"lr": 0.04},
+            "Momentum": {"learningRate": 0.03, "decayFactor": 0.5},
+            "Nesterov": {"lr": 0.035, "decayFactor": 0.5},
+            "Adam": {"learningRate": 0.25, "forgettingFactorM": 0.93, "forgettingFactorR": 0.999}
+        },
+        "australian_scale": {
+            "SGD": {"lr": 0.04},
+            "Momentum": {"learningRate": 0.03, "decayFactor": 0.5},
+            "Nesterov": {"lr": 0.035, "decayFactor": 0.5},
+            "Adam": {"learningRate": 0.2, "forgettingFactorM": 0.93, "forgettingFactorR": 0.999}
+        },
+        "rcv1": {
+            "SGD": {"lr": 0.07},
+            "Momentum": {"learningRate": 0.07, "decayFactor": 0.8},
+            "Nesterov": {"lr": 0.07, "decayFactor": 0.8},
+            "Adam": {"learningRate": 0.3, "forgettingFactorM": 0.92, "forgettingFactorR": 0.99}
+        }
+    }
+    print(f"Setting up optimizers for {problemName}, config: {optimizerConfig[problemName]}, initPos: {initPos}")
     optSGDList = []
     optMomentumList = []
     optNesterovList = []
@@ -34,11 +62,11 @@ def setupOptimizerList(lossObjList, initPos):
 
     # Create lossObjects
     for lossObj in lossObjList:
-        privateSGD = sgd.SGD(lossObj, initPos, lr=512)
-        privateMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.1, decayFactor=0.9)
-        privateNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.1, decayFactor=0.9)
-        privateAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
-        
+        privateSGD = sgd.SGD(lossObj, initPos, **optimizerConfig[problemName]["SGD"])
+        privateMomentum = momentum.Momentum(lossObj, initPos, **optimizerConfig[problemName]["Momentum"])
+        privateNesterov = nesterov.Nesterov(lossObj, initPos, **optimizerConfig[problemName]["Nesterov"])
+        privateAdam = adam.Adam(lossObj, initPos, **optimizerConfig[problemName]["Adam"])
+
         optSGDList.append(privateSGD)
         optMomentumList.append(privateMomentum)
         optNesterovList.append(privateNesterov)
@@ -52,45 +80,64 @@ def setupOptimizerList(lossObjList, initPos):
 
     return groupedByOptimizer, groupedByBatches
 
-def main():
-    # Setup lossObj
-    # Load using loadDataAsNumpyArray, because the setupProblem returns lossObj
-    datasetFilepath = "datasets/rcv1_train.binary" # rcv1_train.binary or australian_scale
-    X, y = loadDataAsNumpyArray(datasetFilepath, toDense=False)  # rcv1_train.binary or australian_scale. X and y are sparse matrices, but will be converted to dense in the setupProblem function if 'toDense = True' is set.
-    # y = np.maximum(y, 0)
+datasetMap = {
+    "australian": "datasets/australian",
+    "australian_scale": "datasets/australian_scale",
+    "rcv1": "datasets/rcv1_train.binary"
+}
 
-    # Batch size values to test, relative to number of samples
-    nrOfSamples = X.shape[0] # type: ignore
-    batchSizeTestValues = [128, 512, 1024] # [round(factor*nrOfSamples) for factor in [0.1, 0.25, 0.5, 1.0]]
-    
-    # Create lossObj
+batchSizeConfig = {
+    "australian": [1, 32, 128, 512, 690],
+    "australian_scale": [1, 32, 128, 512, 690],
+    "rcv1": [32, 128, 512, 1024, 4096, 20238] # 20238 is the total number of samples, so this is the full batch case
+}
+
+def main():
+    # Config
+    randomSeed = 25
+    problemName = "rcv1"
+    datasetFilepath = datasetMap.get(problemName, "N/A")
+    l2NormalizationOn = True if problemName in ["australian", "australian_scale"] else False
+    initialPosInterval = 0
+    nrEpochs = 50
+    batchSizeTestValues = batchSizeConfig.get(problemName, [32, 128, 512, 1024])
+
+    # Setup lossObj
+    X, y = loadDataAsNumpyArray(datasetFilepath, toDense=False, l2NormalizationOn=l2NormalizationOn)  # rcv1_train.binary or australian_scale. X and y are sparse matrices, but will be converted to dense in the setupProblem function if 'toDense = True' is set.
+    nrSamples, nrFeatures = X.shape # type: ignore - used to set relative batch sizes
+    batchSizeTestValues = [np.minimum(batchSize, nrSamples) for batchSize in batchSizeTestValues]   # Set batch size to <= nrSamples
     lossObjList = []
     for batchSize in batchSizeTestValues:
         lossObjList.append(LogisticRegression(data=[X, y], batchSize=batchSize))
-    print("Loss objects set up for batch sizes: ", batchSizeTestValues)
+    print("Loss objects are set up for batch sizes: ", batchSizeTestValues)
 
     # Setup base case optimizers
-    np.random.seed(10)
-    initPos = np.random.uniform(-0.1, 0.1, lossObjList[0].xDataLength)
-    groupedByOptimizer, groupedByBatches = setupOptimizerList(lossObjList=lossObjList, initPos=initPos)
-    print("Optimizers set up.")
+    np.random.seed(randomSeed)
+    initPos = np.random.uniform(-initialPosInterval, initialPosInterval, size=nrFeatures)
+    groupedByOptimizer, groupedByBatches = setupOptimizerList(lossObjList=lossObjList, initPos=initPos, problemName=problemName)
+    print("Optimizers set up finished.")
 
     # Run the test
-    print("Starting robustness test...")
-    startTime = default_timer()
-    testRobustness(groupedByBatches, nrOfEpochs=50)
+    print("Starting robustness test..."); startTime = default_timer()
+    testRobustness(groupedByBatches, nrOfEpochs=nrEpochs)
     print(f"Robustness test completed in {default_timer() - startTime:.2f} seconds.")
 
     # Present
     i = 0
-    plt.figure()
+    plt.figure(figsize=(17, 10))
     for optimizerList in groupedByOptimizer:
         # Plotting: Put all optimizers of the same batch size in the same plot 
-        plt.subplot(len(batchSizeTestValues)//2+1, 2, i+1)
+        plt.subplot(2, 2, i+1)
         plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.9)
         for optimizer in optimizerList:
-            plotHistoryGraph(optimizer.lossHistory, title = f"Loss history, lossObj = {optimizer.lossObj.__class__.__name__}, dataset = {datasetFilepath}", label=f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}, batchSize = {optimizer.lossObj.batchSize}", ylabel="Loss")
+            plotHistoryGraph(optimizer.lossHistory, 
+                             title = f"Loss history, lossObj = {optimizer.lossObj.__class__.__name__}, dataset = {datasetFilepath}", 
+                             label = f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}, batchSize = {optimizer.lossObj.batchSize}", 
+                             ylabel = "Loss",
+                             marker=""
+                             )
         i += 1
+    plt.savefig(f"images/robustness_test_results_{problemName}.png", dpi=500, bbox_inches='tight')
     plt.show()
 
 if __name__ == "__main__":
