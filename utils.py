@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-def plotPath(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
+def plotPath(qdf, history, optimizer_name, center = [0,0], scale: float = 1, levels=32):
     # Create a grid of points
     x = np.linspace(center[0] - 10 * scale, center[0] + 10 * scale, 100)
     y = np.linspace(center[1] - 10 * scale, center[1] + 10 * scale, 100)
@@ -13,7 +13,7 @@ def plotPath(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
     Z = Z.reshape(X.shape)
     
     # Plot the contours
-    contour = plt.contour(X, Y, Z, levels=32, cmap="viridis")
+    contour = plt.contour(X, Y, Z, levels=levels, cmap="viridis")
     plt.clabel(contour, inline=True, fontsize=8)
     
     # Plot the path taken
