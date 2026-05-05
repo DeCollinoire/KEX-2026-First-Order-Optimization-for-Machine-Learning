@@ -136,6 +136,8 @@ def main():
                              ylabel = "Loss",
                              marker=""
                              )
+            plt.minorticks_on()
+            plt.grid(True, which="minor", linestyle=":", linewidth=1)
         i += 1
     plt.savefig(f"images/robustness_test_results_{problemName}.png", dpi=500, bbox_inches='tight')
     plt.show()

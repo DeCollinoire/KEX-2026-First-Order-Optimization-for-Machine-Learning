@@ -57,14 +57,14 @@ def test_hyperparameter_sensitivity(baseCase: Optimizer, hyperparamConfig = dict
 
 def main():
     # Config
-    problemName = "Rosenbrock"
+    problemName = "LogReg"
     datasetFilepath = "datasets/rcv1_train.binary" # australian_scale, australian, rcv1_train.binary # This is also used to show the name in the plot title
     randomSeed = 25
     initialPosInterval = 0.1
     dim = 10 # Used by Rosenbrock for initPos
 
     # LogReg-Specific Config
-    batchSize = 1000000 # Full batch: 20242+ for rcv1, 690+ for australian
+    batchSize = 2048 # Full batch: 20242+ for rcv1, 690+ for australian
     toDense = False
     l2NormalizationOn = False
     
@@ -75,16 +75,16 @@ def main():
 
     # Setup base case optimizers
     optSGD = sgd.SGD(lossObj, initPos, lr=0.07)
-    optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.07, decayFactor=0.9)
-    optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.07, decayFactor=0.9)
-    optAdam = adam.Adam(lossObj, initPos, learningRate=0.1, forgettingFactorM=0.9, forgettingFactorR=0.999)
+    optNesterov = nesterov.Nesterov(lossObj, initPos, lr=0.07, decayFactor=0.8)
+    optMomentum = momentum.Momentum(lossObj, initPos, learningRate=0.07, decayFactor=0.8)
+    optAdam = adam.Adam(lossObj, initPos, learningRate=0.3, forgettingFactorM=0.92, forgettingFactorR=0.99)
 
     # Define an associated hyperparameter config dictionary if desired (missing values will be generated in the test)
     optimizerList = [
-        (optSGD, {"lr": [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.002, 0.003, 0.004]}),
-        (optNesterov, {"lr": [0.01, 0.05, 0.07, 0.075, 0.08, 0.1], "decayFactor": [0.3, 0.5, 0.7, 0.8, 0.85, 0.9]}),
-        (optMomentum, {"learningRate": [0.01, 0.05, 0.07, 0.075, 0.08, 0.1], "decayFactor": [0.5, 0.7, 0.9, 0.99]}),
-        (optAdam, {"learningRate": [0.01, 0.1, 0.2, 0.25, 0.5, 1, 2, 3], "forgettingFactorM": [0.5, 0.7, 0.9, 0.99], "forgettingFactorR": [0.5, 0.7, 0.9, 0.99]})
+        (optSGD, {"lr": [0.01, 0.02, 0.04, 0.07, 0.14, 0.25, 0.5, 0.7, 1, 2]}),
+        (optNesterov, {"lr": [0.01, 0.02, 0.04, 0.07, 0.14, 0.25, 0.5, 0.7, 1, 2], "decayFactor": [0.1, 0.2, 0.5, 0.7, 0.9, 0.99, 0.999]}),
+        (optMomentum, {"learningRate": [0.01, 0.02, 0.04, 0.07, 0.14, 0.25, 0.5, 0.7, 1, 2], "decayFactor": [0.1, 0.2, 0.5, 0.7, 0.9, 0.99, 0.999]}),
+        (optAdam, {"learningRate": [0.01, 0.02, 0.04, 0.07, 0.14, 0.25, 0.5, 0.7, 1, 2], "forgettingFactorM": [0.1, 0.2, 0.5, 0.7, 0.9, 0.99, 0.999], "forgettingFactorR": [0.75, 0.78, 0.8, 0.9, 0.99, 0.999, 0.9999]})
         ]
     print("Optimizers created")
 
@@ -106,6 +106,8 @@ def main():
             plt.subplot(nrOfHyperparams, 1, i+1); plt.subplots_adjust(right=0.8)
             for optVariation in optimizerListCopy:
                 plotHistoryGraph(optVariation.lossHistory, title = f"Loss for {optVariation.__class__.__name__}, variation in '{hyperparamName}', lossObj = {optVariation.lossObj.__class__.__name__}, batchSize = {optVariation.lossObj.batchSize}, dataset = {datasetFilepath}, randomSeed = {randomSeed}", label=f"{optVariation.__class__.__name__}, {optVariation.getHyperparamStr()}", ylabel="Loss")
+                plt.minorticks_on()
+                plt.grid(True, which="minor", linestyle=":", linewidth=1)
             i += 1
             plt.savefig("images/"+opt.__class__.__name__+"_sensitivity_test.png", dpi=300, bbox_inches = 'tight')
     plt.show()
