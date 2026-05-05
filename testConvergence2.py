@@ -171,6 +171,8 @@ def main():
                          f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", 
                          "Loss", 
                          marker="o")
+        plt.minorticks_on()
+        plt.grid(True, which="minor", linestyle=":", linewidth=1)
     plt.savefig("images/all_optimizers_convergence_test.png", dpi=300, bbox_inches = 'tight')
     plt.show()
 
