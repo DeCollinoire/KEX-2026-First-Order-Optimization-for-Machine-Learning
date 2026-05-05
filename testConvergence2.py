@@ -113,14 +113,14 @@ optimizerConfig = {
     "australian": { # these are assumed to be the same as for australian_scale
         "SGD": {"lr": 0.04},
         "Momentum": {"learningRate": 0.025, "decayFactor": 0.9},
-        "Nesterov": {"lr": 0.1, "decayFactor": 0.9},
+        "Nesterov": {"lr": 0.0035, "decayFactor": 0.9},
         "Adam": {"learningRate": 0.1, "forgettingFactorM": 0.9, "forgettingFactorR": 0.999}
     },
     "australian_scale": {
         "SGD": {"lr": 0.04},
         "Momentum": {"learningRate": 0.03, "decayFactor": 0.5},
         "Nesterov": {"lr": 0.035, "decayFactor": 0.5},
-        "Adam": {"learningRate": 0.25, "forgettingFactorM": 0.932, "forgettingFactorR": 0.999}
+        "Adam": {"learningRate": 0.25, "forgettingFactorM": 0.93, "forgettingFactorR": 0.999}
     },
     "rcv1": {
         "SGD": {"lr": 0.07},
@@ -139,17 +139,18 @@ datasetMap = {
 
 def main():
     # Config
-    problemName = "Rosenbrock" # Rosenbrock, QDF, LogReg
+    problemName = "australian_scale" # Rosenbrock, QDF, LogReg
     datasetFilepath = datasetMap.get(problemName, "N/A")
     dim = 2 # used by Rosenbrock only
-    randomSeed = 25
-    initialPosInterval = 0.1
-    batchSize = 100000
-    nrEpochs = 500
-    
+    randomSeed = 120
+    initialPosInterval = 0
+    batchSize = 1
+    nrEpochs = 100
+    l2NormalizationOn = (problemName in ["australian", "australian_scale"])
+
     # Setup problem
     print("Set up problem: Begun")
-    lossObj, initPos = setupProblem(problemName=problemName, dim=dim, datasetFilepath=datasetFilepath, initialPosInterval=initialPosInterval, randomSeed=randomSeed, batchSize=batchSize) # QDF, Rosenbrock; datasetFilepath is only needed for LogReg
+    lossObj, initPos = setupProblem(problemName=problemName, dim=dim, datasetFilepath=datasetFilepath, initialPosInterval=initialPosInterval, randomSeed=randomSeed, batchSize=batchSize, l2NormalizationOn=l2NormalizationOn) # QDF, Rosenbrock; datasetFilepath is only needed for LogReg
     print("Set up problem: Finished, initPos = " + str(initPos))
 
     # Setup optimizers
@@ -165,7 +166,11 @@ def main():
     # Plotting & Presenting
     plt.figure(figsize=(12, 8))
     for optimizer in optimizerList:
-        plotHistoryGraph(optimizer.lossHistory, f"Loss history, {lossObj.__class__.__name__}, dataset: {datasetFilepath if problemName=='LogReg' else 'N/A'}, batchSize = {batchSize if problemName=='LogReg' else 'N/A'}", f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", "Loss")
+        plotHistoryGraph(optimizer.lossHistory, 
+                         f"Loss history, {lossObj.__class__.__name__}, dataset: {datasetFilepath}, batchSize = {batchSize}", 
+                         f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", 
+                         "Loss", 
+                         marker="o")
     plt.savefig("images/all_optimizers_convergence_test.png", dpi=300, bbox_inches = 'tight')
     plt.show()
 
@@ -173,7 +178,9 @@ def main():
         plt.figure(figsize=(12, 8))
         for i, optimizer in enumerate(optimizerList):
             plt.subplot(2,2, i+1)
-            plotPath(optimizer.lossObj, optimizer.posHistory, f"Loss history ({optimizer.__class__.__name__})", levels=120, scale=0.1)
+            plotPath(optimizer.lossObj, 
+                     optimizer.posHistory, 
+                     f"Loss history ({optimizer.__class__.__name__}), randomSeed = {randomSeed}", levels=120, scale=0.1)
         #plt.savefig("images/all_optimizers_convergence_test.png", dpi=300, bbox_inches='tight')
         #plt.show()
     plt.show()
