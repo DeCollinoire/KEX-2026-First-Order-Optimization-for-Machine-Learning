@@ -139,13 +139,13 @@ datasetMap = {
 
 def main():
     # Config
-    problemName = "Rosenbrock" # Rosenbrock, QDF, LogReg
+    problemName = "rcv1" # Rosenbrock, QDF, LogReg
     datasetFilepath = datasetMap.get(problemName, "N/A")
     dim = 2 # used by Rosenbrock only
     randomSeed = 25
     initialPosInterval = 0.1
     batchSize = 100000
-    nrEpochs = 500
+    nrEpochs = 100
     
     # Setup problem
     print("Set up problem: Begun")
@@ -165,7 +165,10 @@ def main():
     # Plotting & Presenting
     plt.figure(figsize=(12, 8))
     for optimizer in optimizerList:
-        plotHistoryGraph(optimizer.lossHistory, f"Loss history, {lossObj.__class__.__name__}, dataset: {datasetFilepath if problemName=='LogReg' else 'N/A'}, batchSize = {batchSize if problemName=='LogReg' else 'N/A'}", f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", "Loss")
+        plotHistoryGraph(optimizer.lossHistory, f"Loss history, {lossObj.__class__.__name__}, dataset: {datasetFilepath if problemName=='LogReg' else 'N/A'}, batchSize = {batchSize if problemName=='LogReg' else 'N/A'}", f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}", "Loss",
+                         marker="")
+        plt.minorticks_on()
+        plt.grid(True, which="minor", linestyle=":", linewidth=1)
     plt.savefig("images/all_optimizers_convergence_test.png", dpi=300, bbox_inches = 'tight')
     plt.show()
 
