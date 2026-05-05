@@ -123,13 +123,6 @@ def main():
     print("Set up problem: Finished")
     print("initpos" + str(initPos))
 
-    # Rosenbrock
-    # datasetFilepath = "Rosenbrock" # This is also used to show the name in the plot title
-    # lossObj, initPos = setupProblem("Rosenbrock", dim=10, randomSeed = randomSeed)
-
-    # lossObj, initPos = setupProblem("QDF", randomSeed = randomSeed)
-
-
     # Get the optimizers by type of optimizer in a list
     groupedByOptimizer, allOpts = setupOptimizerList(lossObj=lossObj, initPos=initPos)
 

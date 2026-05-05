@@ -17,9 +17,9 @@ All optimizer variants are created first, as opposed to modifying them one-by-on
 """
 
 def linspace(start, end, nrPoints):
-    """ Generate nrPoints+1 evenly separated points between start and end. """
-    delta = abs(end - start) / nrPoints
-    return [float(f"{(start + delta * i):.3g}") for i in range(nrPoints + 1)]     # Use f-string with :.3g for 3 significant figures, then convert back to float. nrPoints+1 to include the end point
+    """ Generate nrPoints evenly separated points between start and end. """
+    delta = abs(end - start) / (nrPoints - 1)
+    return [float(f"{(start + delta * i):.3g}") for i in range(nrPoints)]     # Use f-string with :.3g for 3 significant figures, then convert back to float. nrPoints to include the end point
 
 class LogisticRegression_ExternalBatching():
     """ 
@@ -50,7 +50,7 @@ def createVariants(lossObj, initPos, problemName="australian_scale"):
         "australian_scale": {
             "SGD": {"lr": linspace(0.001, 0.1, 50)},
             "Nesterov": {
-                "lr": linspace(0.001, 0.1, 20),
+                "lr": linspace(0.001, 0.01, 20),
                 "df": linspace(0.5, 0.999, 10)
             },
             "Adam": {
@@ -118,7 +118,7 @@ datasetMap = {
 def main():
     # Config
     randomSeed = 25
-    problemName = "rcv1"
+    problemName = "australian_scale"
     datasetFilepath = datasetMap[problemName]
     batchSize = 100000 # Use large batch size to get full batch.
     initialPosInterval = 0
@@ -155,7 +155,7 @@ def main():
             # Pass the hyperparameter string into the label or a custom attribute
             label_str = f"{opt.__class__.__name__}: {opt.getHyperparamStr()}"
             line = plotHistoryGraph(opt.lossHistory, 
-                                    title=f"{optClassName} Sensitivity, {problemName}, dim = {lossObj.xDataLength}, dataset = {datasetFilepath}, batchSize = {"fullbatch" if batchSize is None else batchSize}", 
+                                    title=f"{optClassName} Sensitivity, {problemName}, dim = {lossObj.xDataLength}, dataset = {datasetFilepath}, batchSize = {"fullbatch" if batchSize is None else batchSize}, randomSeed = {randomSeed}", 
                                     label=label_str, 
                                     ylabel="Loss",
                                     legendOn=False, # use external legend

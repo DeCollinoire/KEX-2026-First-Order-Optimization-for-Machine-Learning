@@ -68,9 +68,9 @@ def plotPath_3d(qdf, history, optimizer_name, center = [0,0], scale: float = 1):
     
     plt.legend()
 
-def plotHistoryGraph(history, title, label, ylabel, yscale="linear", legendOn=True, marker="o"):
+def plotHistoryGraph(history, title, label, ylabel, yscale="linear", legendOn=True, marker="o", markersize=4, linewidth=1.5):
     # Ensure you use the comma (line,) to unpack the list returned by plot
-    line, = plt.plot(history, marker=marker, label=label)
+    line, = plt.plot(history, marker=marker, label=label, markersize=markersize, linewidth=linewidth)
     plt.title(title)
     plt.xlabel("Epochs")
     plt.ylabel(ylabel)
@@ -140,7 +140,10 @@ def train_external_batching(optimizerList, lossObj, X, y, batchSize=None, nrEpoc
             for optimizer in optimizerList:
                 optimizer.step()
 
-
+def linspace(start, end, nrPoints):
+    """ Generate nrPoints evenly separated points between start and end. """
+    delta = abs(end - start) / (nrPoints - 1)
+    return [float(f"{(start + delta * i):.3g}") for i in range(nrPoints)]     # Use f-string with :.3g for 3 significant figures, then convert back to float. nrPoints to include the end point
 
 def setupProblem(problemName, dim=10, datasetFilepath="datasets/australian_scaled", randomSeed=0, initialPosInterval=0.1, batchSize = 64, toDense = False, l2NormalizationOn=False):
     """ 

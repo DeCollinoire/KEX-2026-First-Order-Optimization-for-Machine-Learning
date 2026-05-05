@@ -43,7 +43,7 @@ def setupOptimizerList(lossObjList, initPos, problemName="rcv1"):
             "SGD": {"lr": 0.04},
             "Momentum": {"learningRate": 0.03, "decayFactor": 0.5},
             "Nesterov": {"lr": 0.035, "decayFactor": 0.5},
-            "Adam": {"learningRate": 0.2, "forgettingFactorM": 0.93, "forgettingFactorR": 0.999}
+            "Adam": {"learningRate": 0.25, "forgettingFactorM": 0.93, "forgettingFactorR": 0.999}
         },
         "rcv1": {
             "SGD": {"lr": 0.07},
@@ -52,7 +52,7 @@ def setupOptimizerList(lossObjList, initPos, problemName="rcv1"):
             "Adam": {"learningRate": 0.3, "forgettingFactorM": 0.92, "forgettingFactorR": 0.99}
         }
     }
-    print(f"Setting up optimizers for {problemName}, config: {optimizerConfig[problemName]}, initPos: {initPos}")
+    print(f"Setting up optimizers for {problemName}, initPos: {initPos}")
     optSGDList = []
     optMomentumList = []
     optNesterovList = []
@@ -88,21 +88,22 @@ datasetMap = {
 
 batchSizeConfig = {
     "australian": [1, 32, 128, 512, 690],
-    "australian_scale": [1, 32, 128, 512, 690],
-    "rcv1": [32, 128, 512, 1024, 4096, 20238] # 20238 is the total number of samples, so this is the full batch case
+    "australian_scale": [1, 16, 64, 128, 256, 512, 690],
+    "rcv1": [32, 128, 512, 1024, 4096, 20242] # 20242 is the total number of samples, so this is the full batch case
 }
 
 def main():
     # Config
     randomSeed = 25
-    problemName = "rcv1"
+    problemName = "australian_scale"
     datasetFilepath = datasetMap.get(problemName, "N/A")
-    l2NormalizationOn = True if problemName in ["australian", "australian_scale"] else False
+    l2NormalizationOn = (problemName in ["australian", "australian_scale"])
     initialPosInterval = 0
-    nrEpochs = 50
+    nrEpochs = 10
     batchSizeTestValues = batchSizeConfig.get(problemName, [32, 128, 512, 1024])
 
     # Setup lossObj
+    np.random.seed(randomSeed)
     X, y = loadDataAsNumpyArray(datasetFilepath, toDense=False, l2NormalizationOn=l2NormalizationOn)  # rcv1_train.binary or australian_scale. X and y are sparse matrices, but will be converted to dense in the setupProblem function if 'toDense = True' is set.
     nrSamples, nrFeatures = X.shape # type: ignore - used to set relative batch sizes
     batchSizeTestValues = [np.minimum(batchSize, nrSamples) for batchSize in batchSizeTestValues]   # Set batch size to <= nrSamples
@@ -112,7 +113,6 @@ def main():
     print("Loss objects are set up for batch sizes: ", batchSizeTestValues)
 
     # Setup base case optimizers
-    np.random.seed(randomSeed)
     initPos = np.random.uniform(-initialPosInterval, initialPosInterval, size=nrFeatures)
     groupedByOptimizer, groupedByBatches = setupOptimizerList(lossObjList=lossObjList, initPos=initPos, problemName=problemName)
     print("Optimizers set up finished.")
@@ -124,14 +124,14 @@ def main():
 
     # Present
     i = 0
-    plt.figure(figsize=(17, 10))
     for optimizerList in groupedByOptimizer:
         # Plotting: Put all optimizers of the same batch size in the same plot 
-        plt.subplot(2, 2, i+1)
+        plt.figure(figsize=(17, 10))
+        # plt.subplot(2, 2, i+1)
         plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.9)
         for optimizer in optimizerList:
             plotHistoryGraph(optimizer.lossHistory, 
-                             title = f"Loss history, lossObj = {optimizer.lossObj.__class__.__name__}, dataset = {datasetFilepath}", 
+                             title = f"Robustness test, loss history for {optimizer.__class__.__name__}, lossObj = {optimizer.lossObj.__class__.__name__}, dataset = {datasetFilepath}, randomSeed = {randomSeed}", 
                              label = f"{optimizer.__class__.__name__}, {optimizer.getHyperparamStr()}, batchSize = {optimizer.lossObj.batchSize}", 
                              ylabel = "Loss",
                              marker=""
@@ -139,7 +139,7 @@ def main():
             plt.minorticks_on()
             plt.grid(True, which="minor", linestyle=":", linewidth=1)
         i += 1
-    plt.savefig(f"images/robustness_test_results_{problemName}.png", dpi=500, bbox_inches='tight')
+        plt.savefig(f"images/robustness_test_results_{problemName}_{optimizerList[0].__class__.__name__}.png", dpi=300, bbox_inches='tight')
     plt.show()
 
 if __name__ == "__main__":

@@ -12,6 +12,9 @@ def compute_gradient(X, y, w):
     dw = -y * activation
     return (X.T @ dw) / X.shape[0] # NOTE: If dividing by X.shape[0], we get a really small gradient and don't get Amirreza's results
 
+def update_weights(w):
+    pass
+
 def train(X, y, lr=1.0, epochs=100):
     w = np.zeros(X.shape[1])
     history = []
@@ -20,7 +23,7 @@ def train(X, y, lr=1.0, epochs=100):
         loss = compute_loss(X, y, w)
         history.append(loss)
         
-        # Compute gradient and update weights
+        # Compute gradient and update weights (full batch)
         grad = compute_gradient(X, y, w)
         w -= lr * grad
         
