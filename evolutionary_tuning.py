@@ -8,6 +8,8 @@ from DataLoader import loadDataAsNumpyArray
 from LogisticRegression import LogisticRegression
 from Rosenbrock import Rosenbrock
 from optimizers import sgd, nesterov, momentum, adam
+import mplcursors
+import random
 
 """
 NOTE: This version implements a gridsearch approach to sensitivity, i.e. it tests all combinations of the given hyperparams.
@@ -31,143 +33,126 @@ class LogisticRegression_ExternalBatching():
 
     def evaluate_loss(self, weights):
         nrOfSamples = self.X.shape[0]
-        return np.sum(np.log(1 + np.exp(-self.y * (self.X @ weights)))) / nrOfSamples
+        return np.clip(np.sum(np.log(1 + np.exp(-self.y * (self.X @ weights)))) / nrOfSamples, -1e6, 1e6)
 
     def evaluate_gradient(self, weights):
         X, y = self.getCurrentBatch()
         return -(X.T @ (y * expit(-(y * (X @ weights))))) # expit is a sigmoid function
 
-def createVariants(lossObj, initPos):
+def cost(optimizer):
+    """ 
+    We want to penalize:
+        - High final loss
+        - High loss after the first epoch (approximates slow convergence)
+        - High variance in the loss history (i.e. oscillations)
+    """
+    cost = 0
+    cost += optimizer.lossHistory[-1] # final loss
+    cost += 2*optimizer.lossHistory[0] # loss after first epoch
+    cost += 2*optimizer.lossHistory[1] # loss after second epoch
+    cost += 0.5*np.var(optimizer.lossHistory) # variance in loss history
+    
+    # hyperparamCost = sum([abs(value) for value in optimizer.getHyperparamDict().values()])
+    # cost += 0.1 * hyperparamCost # Add a small cost for large hyperparameter values to encourage reasonable hyperparameters
+    
+    if cost is np.inf or np.isnan(cost):
+        cost = 1e6 # Assign a large cost for infinite or NaN values
+    return cost
+
+def createVariants(lossObj, initPos, populationSize=10):
     variants = {"SGD": [], "Nesterov": [], "Momentum": [], "Adam": []}
 
     # SGD
-    for lr in [0.01, 0.1, 0.2, 0.5, 1, 5, 10, 100, 1000, 2000]:
-        variants["SGD"].append(sgd.SGD(lossObj, initPos, lr=lr))
-
-    # Nesterov
-    for lr in [0.01, 0.1, 0.2, 0.5, 1, 5, 10]:
-        for decayFactor in [0.5, 0.7, 0.9, 0.99]:
-            variants["Nesterov"].append(nesterov.Nesterov(lossObj, initPos, lr=lr, decayFactor=decayFactor))
-    
-    # Momentum
-    for lr in [0.01, 0.1, 0.2, 0.5, 1, 5, 10]:
-        for decayFactor in [0.5, 0.7, 0.9, 0.99]:
-            variants["Momentum"].append(momentum.Momentum(lossObj, initPos, learningRate=lr, decayFactor=decayFactor))
-
-    # Adam
-    for lr in [0.01, 0.1, 0.2, 0.5, 0.75]:
-        for forgettingFactorM in [0.7, 0.9, 0.99]:
-            for forgettingFactorR in [0.7, 0.9, 0.99]:
-                variants["Adam"].append(adam.Adam(lossObj, initPos, learningRate=lr, forgettingFactorM=forgettingFactorM, forgettingFactorR=forgettingFactorR))
-
+    for i in range(populationSize):
+        variants["SGD"].append(sgd.SGD(lossObj, initPos, lr=random.uniform(0.001, 1)))
+        variants["Nesterov"].append(nesterov.Nesterov(lossObj, initPos, lr=random.uniform(0.001, 1), decayFactor=random.uniform(0.1, 0.999)))
+        variants["Momentum"].append(momentum.Momentum(lossObj, initPos, learningRate=random.uniform(0.001, 1), decayFactor=random.uniform(0.1, 0.999)))
+        variants["Adam"].append(adam.Adam(lossObj, initPos, learningRate=random.uniform(0.001, 1), forgettingFactorM=random.uniform(0.1, 0.99), forgettingFactorR=random.uniform(0.1, 0.99)))
     return variants
 
+def mutateOptimizer(opt):
+    optClass = opt.__class__
+    hyperparams = opt.getHyperparamDict().copy()
+    for hyperparamName, hyperparamValue in hyperparams.items():
+        # Randomly perturb the hyperparameter by multiplying it with a random factor
+        randomFactor = np.random.uniform(0.5, 1.2)
+        hyperparams[hyperparamName] = hyperparamValue * randomFactor
+    return optClass(opt.lossObj, opt.initPos, **hyperparams)
 
-def evolutionaryTest(optimizerList, lossObj, X, y, nrEpochs=20, batchSize=1000, n_generations=5):
+def evolutionaryTuning(optimizerList, lossObj, X, y, nrEpochs=20, batchSize=1000, n_generations=5):
     """
-    Interactive evolutionary hyperparameter search.
-    Each generation: train all → plot → user selects survivors → mutate into next gen.
+    This test implements an evolutionary approach.
+    1. Train the optimizers in optimizerList for nrEpochs.
+    2. Evaluate the cost of each optimizer.
+    3. Select the top 50% optimizers and mutate their hyperparameters.
     """
-    import copy, json
+    for gen in range(n_generations):
+        print(f"Generation {gen+1}/{n_generations}")
+        # Reset loss history and position
+        for opt in optimizerList:
+            opt.reset()
 
-    population = optimizerList
-    sigma = 0.3          # log-space mutation std for lr
-    crossover_p = 0.5
-    offspring_per_parent = 3
-    elitism = True
+        # Train optimizers
+        train_external_batching(optimizerList, lossObj, X, y, nrEpochs=nrEpochs, batchSize=batchSize)
 
-    for gen in range(1, n_generations + 1):
-        print(f"\n{'='*50}\n  Generation {gen}  (population: {len(population)})\n{'='*50}")
+        # Evaluate cost
+        costs = [cost(opt) for opt in optimizerList]
 
-        # --- Train ---
-        train_external_batching(population, lossObj, X, y,
-                                nrEpochs=nrEpochs, batchSize=batchSize, printProgress=True)
+        # Select top 50%
+        sortedIndices = np.argsort(costs)
+        topOptimizers = [optimizerList[i] for i in sortedIndices[:len(optimizerList)//2]]
 
-        # --- Plot & selection ---
-        fig, ax = plt.subplots(figsize=(12, 6))
-        for i, opt in enumerate(population):
-            ax.plot(opt.lossHistory, label=f"[{i}] {opt.__class__.__name__} {opt.getHyperparamStr()}", alpha=0.7)
-        ax.set_title(f"Generation {gen} — enter survivor indices below")
-        ax.set_xlabel("Epoch"); ax.set_ylabel("Loss"); ax.grid(); ax.legend(fontsize=8)
-        plt.tight_layout(); plt.show()
+        # Mutate hyperparameters of top optimizers and create new optimizer list
+        optimizerList = topOptimizers.copy() # Start with the top optimizers (unmutated)
+        for opt in topOptimizers:
+            # Create a new mutated 
+            mutatedOpt = mutateOptimizer(opt)
+            optimizerList.append(mutatedOpt)
+        
+    # Return the final list of optimizers sorted by cost
+    train_external_batching(optimizerList, lossObj, X, y, nrEpochs=nrEpochs, batchSize=batchSize) # Final training to update loss history for plotting
+    costs = [cost(opt) for opt in optimizerList]
+    sortedIndices = np.argsort(costs)
+    optimizerList = [optimizerList[i] for i in sortedIndices[:len(optimizerList)//2]]
+    return optimizerList
 
-        # --- User picks survivors ---
-        raw = input(f"\nEnter survivor indices (comma-separated, e.g. 0,2,5): ")
-        survivor_ids = [int(x.strip()) for x in raw.split(",") if x.strip().isdigit()]
-        survivors = [population[i] for i in survivor_ids if i < len(population)]
-        print(f"  Survivors: {[opt.__class__.__name__ for opt in survivors]}")
-
-        if not survivors:
-            print("No survivors selected — stopping.")
-            break
-        if gen == n_generations:
-            print("Final generation reached.")
-            break
-
-        # --- Evolve: mutate + crossover ---
-        next_pop = list(survivors) if elitism else []
-
-        for parent in survivors:
-            for _ in range(offspring_per_parent):
-                child = copy.deepcopy(parent)
-                hp = child.getHyperparams()  # dict: {"lr": ..., "decayFactor": ..., etc.}
-
-                # Crossover: swap some hyperparams with a random other survivor
-                if len(survivors) > 1 and np.random.rand() < crossover_p:
-                    donor = np.random.choice([s for s in survivors if s is not parent])
-                    donor_hp = donor.getHyperparams()
-                    for k in hp:
-                        if np.random.rand() < 0.5:
-                            hp[k] = donor_hp[k]
-
-                # Mutation: log-normal perturbation for lr, normal for others
-                for k, v in hp.items():
-                    if "lr" in k.lower() or "rate" in k.lower():
-                        hp[k] = float(np.clip(v * np.exp(np.random.normal(0, sigma)), 1e-5, 10))
-                    else:
-                        hp[k] = float(np.clip(np.random.normal(v, sigma * 0.15), 0.05, 0.9999))
-
-                child.setHyperparams(hp)
-                child.reset()  # clear lossHistory and velocity/moments
-                next_pop.append(child)
-
-        print(f"  Next generation: {len(next_pop)} optimizers")
-        population = next_pop
-
-    return population  # final survivors
+datasetMap = {
+    "australian_scale": "datasets/australian_scale",
+}
 
 def main():
-    # Config
-    randomSeed = 25
-    datasetFilepath = "datasets/rcv1_train.binary" # This is also used for plot titles
-    initialPosInterval = 0.1
-    batchSize = 1000
+    # Setup problem
+    problemName = "australian_scale"
+    datasetFilepath = datasetMap[problemName]
+    X, y = loadDataAsNumpyArray(datasetFilepath)
+    lossObj = LogisticRegression_ExternalBatching(X, y)
+    initPos = np.zeros(X.shape[1]) # type: ignore
+    variantsDict = createVariants(lossObj, initPos, populationSize=10)
 
-    # Setup
-    print("Setting up...")
-    np.random.seed(randomSeed)
-    X, y = loadDataAsNumpyArray(datasetFilepath, toDense=False, l2NormalizationOn=False)
-    nrSamples, nrFeatures = X.shape # type: ignore
-
-    lossObj = LogisticRegression_ExternalBatching(X, y) # Use the external batching version of logistic regression for this test. It works fine to use the internal batching of the lossObj also.
-    initPos = np.random.uniform(-initialPosInterval, initialPosInterval, nrFeatures) # Initialize position based on the number of features in the dataset
-
-    # Create variants
-    variants = createVariants(lossObj, initPos) # Creates all variants of sgd, nesterov, momentum and adam in a dictionary
-    joinedOptList = [opt for optList in variants.values() for opt in optList] # Join all optimizers into one list for training
-    print(f"Setup finished!")
-
-    # Train
-    print(f"\n--- Training ---")
-    train_external_batching(joinedOptList, lossObj, X, y, nrEpochs=20, batchSize=batchSize, printProgress=True)
-    print(f"Training finished.")
+    # Run evolutionary tuning
+    tunedOptimizerDict = {}
+    for optVariants in variantsDict.values():
+        tunedOptimizerDict[optVariants[0].__class__.__name__] = evolutionaryTuning(optVariants, lossObj, X, y, n_generations=30)
 
     # Plot
-    for optClassName, optVariants in variants.items():
-        plt.figure(str(optClassName+"_sensitivity_test"), figsize=(10, 6))
-        for opt in optVariants:
+    for optimizerList in tunedOptimizerDict.values():
+        plt.figure(str(optimizerList[0].__class__.__name__+"_tuning"), figsize=(10, 6))
+        for opt in optimizerList:
             plotHistoryGraph(opt.lossHistory, title=f"{opt.__class__.__name__} Hyperparameter Sensitivity, lossObj = {lossObj.__class__.__name__}, problem = {datasetFilepath}", label=f"{opt.__class__.__name__}, {opt.getHyperparamStr()}", ylabel="Loss", yscale="linear")
         plt.grid()
+
+        # Adding interactability
+        cursor = mplcursors.cursor(hover=False)
+
+        @cursor.connect("add")
+        def _(sel):
+            sel.annotation.set_text(sel.artist.get_label())
+            sel.artist.set_linewidth(9)
+
+        @cursor.connect("remove")
+        def _(sel):
+            # Reset linewidth when clicking away
+            sel.artist.set_linewidth(1.5)
         plt.show()
 
 if __name__ == "__main__":
